@@ -1,8 +1,8 @@
 import React from 'react';
-import {View, Text, Modal, StyleSheet} from 'react-native';
+import { View, Text, Modal, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
-const SuccessPopup = ({isVisible, onClose, isDarkMode}) => {
+const SuccessPopup = ({ isVisible, onClose, isDarkMode }) => {
   if (!isVisible) {
     return null;
   }
@@ -22,7 +22,7 @@ const SuccessPopup = ({isVisible, onClose, isDarkMode}) => {
           />
         </View>
         <Text
-          style={[styles.successText, {color: isDarkMode ? '#fff' : 'black'}]}>
+          style={[styles.successText, { color: isDarkMode ? '#fff' : 'black' }]}>
           Successfully registered!
         </Text>
       </Modal>

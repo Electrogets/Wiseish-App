@@ -13,6 +13,7 @@ import BouncyCheckbox from 'react-native-bouncy-checkbox';
 import LinearGradient from 'react-native-linear-gradient';
 import axios from 'axios';
 import Icon from 'react-native-vector-icons/FontAwesome';
+// import FontAwesome from '@react-native-vector-icons/fontawesome';
 import { useAuth } from './auth/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Animatable from 'react-native-animatable';
@@ -81,6 +82,7 @@ const Login = ({ navigation, route }) => {
 
   const [userLocation, setUserLocation] = useState(null);
   const [isLocationAllowed, setIsLocationAllowed] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
 
 
@@ -143,20 +145,28 @@ const Login = ({ navigation, route }) => {
     const getLocation = async () => {
       try {
         setLoadingLocation(true); // Start loader
-        setLoaderText('Fetching Location...');
+        // setLoaderText('Fetching Location...');
         const position = await getCurrentLocation();
         console.log('User Location:', position);
         setUserLocation(position);
         const allowedLocation = isUserInAllowedLocation(position);
         console.log('Is Location Allowed?', allowedLocation);
         setIsLocationAllowed(allowedLocation);
+        setLoaderText('Location Fetch Successfully');
+        console.log(loaderText)
       } catch (error) {
         console.error('Error getting location:', error);
         setIsLocationAllowed(false);
-        setLoaderText('Error fetching location');
+        setLoaderText('Location Fetch Successfully');
+        setShowSuccessMessage(true);
+        setTimeout(() => {
+          setShowSuccessMessage(false);
+        }, 3000); // Show the success message for 3 seconds
       }
       finally {
         setLoadingLocation(false);
+        // setLoaderText('Error fetching location');
+
       }
     };
 
@@ -227,6 +237,7 @@ const Login = ({ navigation, route }) => {
       setShowNameWarning(false);
       setShowPasswordWarning(false);
       setShowInvalidPopup(false);
+
       if (!isLocationAllowed) {
         alert(
           'You are not in an allowed location to log in. Clear your cache and try again.',
@@ -254,12 +265,10 @@ const Login = ({ navigation, route }) => {
         }
         return;
       }
-      // console.log(name, password)
+
 
       const response = await axios.post(
-        // 'https://www.expertifyme.com/api/owner/login/',
         'https://wiseish.in/api/salesperson/login/',
-        // 'https://jsonplaceholder.typicode.com/posts',
         {
 
           name,
@@ -269,7 +278,6 @@ const Login = ({ navigation, route }) => {
 
 
       );
-      console.log("api", response.data);
 
 
 
@@ -296,106 +304,24 @@ const Login = ({ navigation, route }) => {
       console.error('Login failed', error.response ? error.response.data : error);
 
 
-      if (error.response && error.response.status === 400) {
+      if (error.response && [400, 401, 404].includes(error.response.status)) {
         console.error('Response data:', error.response.data);
         console.error('Response status:', error.response.status);
-        console.error('Response headers:', error.response.headers);
-        setInvalidPopupText('Invalid username or password.');
+        // console.error('Response headers:', error.response.headers);
+        const errorMessage = error.response.data.error || 'Invalid username or password.';
         setShowInvalidPopup(true);
+        setInvalidPopupText(errorMessage);
+
+        setTimeout(() => {
+          setShowInvalidPopup(false);
+        }, 3000);
+
       }
     } finally {
       setLoading(false);
     };
   }
 
-  // const handleLogin = async () => {
-  //   try {
-  //     setLoading(true);
-
-  //     setShowNameWarning(false);
-  //     setShowPasswordWarning(false);
-  //     setShowInvalidPopup(false);
-
-  //     if (!isLocationAllowed) {
-  //       alert('You are not in an allowed location to log in. Clear your cache and try again.');
-  //       setLoading(false);
-  //       return;
-  //     }
-
-  //     if (rememberMe) {
-  //       await AsyncStorage.setItem('rememberedName', name);
-  //       await AsyncStorage.setItem('rememberedPassword', password);
-  //       await AsyncStorage.setItem('rememberMe', 'true');
-  //     } else {
-  //       await AsyncStorage.removeItem('rememberedName');
-  //       await AsyncStorage.removeItem('rememberedPassword');
-  //       await AsyncStorage.removeItem('rememberMe');
-  //     }
-
-  //     if (!name.trim() || !password.trim()) {
-  //       if (!name.trim()) {
-  //         setShowNameWarning(true);
-  //       }
-  //       if (!password.trim()) {
-  //         setShowPasswordWarning(true);
-  //       }
-  //       setLoading(false);
-  //       return;
-  //     }
-
-  //     console.log(name, password);
-
-
-  //     const response = await axios.get(
-  //       'https://wiseish.in/api/salesperson/login/',
-  //       {
-  //         name,
-  //         password,
-  //       },
-  //       {
-  //         timeout: 10000, // 10 seconds
-  //         sslPinning: {
-  //           certs: ["certificate"], // the name of the certificate file placed in `res/raw`
-  //         },
-  //         headers: {
-  //           'Accept': 'application/json',
-  //           'Content-Type': 'application/json', // or 'application/x-www-form-urlencoded' if needed
-  //         }
-  //       }
-  //     );
-
-  //     console.log('Response:', response);
-
-  //     if (response.status === 200) {
-  //       const userInfo = response.data;
-  //       console.log('Login successful:', userInfo);
-  //       setShowSuccessPopup(true);
-  //       dispatch(actionCreators.setMasterToken(userInfo?.tokens?.access));
-  //       dispatch(actionCreators.setRefreshToken(userInfo?.tokens?.refresh));
-  //       setTimeout(() => {
-  //         setShowSuccessPopup(false);
-  //         setLoading(false);
-
-  //         setName('');
-  //         setPassword('');
-
-  //         navigation.navigate('Register');
-  //       }, 1000);
-  //     } else {
-  //       console.log('Unexpected response:', response);
-  //     }
-  //   } catch (error) {
-  //     console.error('Axios error:', error.message);
-  //     console.error('Login failed', error.response ? error.response.data : error);
-
-  //     if (error.response && error.response.status === 400) {
-  //       setInvalidPopupText('Invalid username or password.');
-  //       setShowInvalidPopup(true);
-  //     }
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   const closeSuccessPopup = () => {
     setShowSuccessPopup(false);
@@ -462,20 +388,21 @@ const Login = ({ navigation, route }) => {
     loginTypo: {
       fontWeight: '500',
       fontSize: 18,
-      textAlign: 'left',
-      left: '50%',
+      // textAlign: 'left',
+      // left: '50%',
       color: isDarkMode ? '#fff' : '#000',
     },
     username: {
-      marginLeft: -160,
-      paddingTop: 40,
+      marginLeft: 10,
+      paddingTop: 30,
       fontWeight: '500',
+      fontSize: 14,
       color: isDarkMode ? '#fff' : '#000',
       position: 'absolute',
     },
     password: {
       top: 40,
-      marginLeft: -160,
+      marginLeft: 10,
       fontWeight: '500',
       fontSize: 14, // Adjust the font size as needed
       color: isDarkMode ? '#fff' : '#000',
@@ -585,6 +512,14 @@ const Login = ({ navigation, route }) => {
       flexDirection: 'row',
       alignItems: 'center',
     },
+
+
+    invalidPopupText: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: isDarkMode ? '#fff' : '#000',
+    },
+
     invalidPopupText: {
       fontSize: 18,
       top: 4,
@@ -638,10 +573,11 @@ const Login = ({ navigation, route }) => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.contentContainer}>
-        <Text style={styles.MainHeading}>Sales Login</Text>
+        <Text style={styles.MainHeading}>
+          Sales Login   </Text>
 
         <View>
-          <Text style={[styles.username, styles.loginTypo]}>Username</Text>
+          <Text style={[styles.username, styles.loginTypo]}>Username </Text>
           <View style={styles.icon}>
             <Icon name="user" size={20} color={isDarkMode ? '#fff' : 'black'} />
             <TextInput
@@ -674,13 +610,13 @@ const Login = ({ navigation, route }) => {
             <TouchableOpacity
               style={styles.eyeIconContainer}
               onPress={handlePasswordVisibility}>
-              <Animatable.View animation="swing" iterationCount={1}>
+              <View>
                 <Icon
                   name={showPassword ? 'eye-slash' : 'eye'}
                   size={20}
                   color={isDarkMode ? '#fff' : 'black'}
                 />
-              </Animatable.View>
+              </View>
             </TouchableOpacity>
           </View>
           <View>
@@ -732,27 +668,41 @@ const Login = ({ navigation, route }) => {
         </View>
       </View>
 
-      {showSuccessPopup && (
-        <View style={styles.successPopup}>
-          <Icon name="check" size={20} color="lightgreen" />
-          <Text style={styles.successPopupText}>Logged in Successfully!</Text>
-        </View>
-      )}
+      {
+        showSuccessPopup && (
+          <View style={styles.successPopup}>
+            <Icon name="check" size={20} color="lightgreen" />
+            <Text style={styles.successPopupText}>Logged in Successfully!</Text>
+          </View>
+        )
+      }
 
-      {showInvalidPopup && (
-        <View style={styles.invalidPopup}>
-          <Icon name="close" size={30} color="red" />
+      {
+        showInvalidPopup && (
+          <View style={styles.invalidPopup}>
+            <Icon name="close" size={30} color="red" />
+            <Text style={styles.invalidPopupText}>{invalidPopupText}</Text>
+          </View>
+        )
+      }
+      {/* {showInvalidPopup && (
+        <Animatable.View animation="fadeIn" style={styles.invalidPopup}>
           <Text style={styles.invalidPopupText}>{invalidPopupText}</Text>
-        </View>
-      )}
+          <TouchableOpacity onPress={closeInvalidPopup}>
+            <Icon name="times" size={20} color={isDarkMode ? '#fff' : '#000'} />
+          </TouchableOpacity>
+        </Animatable.View>
+      )} */}
 
-      {loadingLocation && (
-        <View style={styles.loader}>
-          <ActivityIndicator size="large" color="#0000ff" />
-          <Text style={styles.loaderText}>{loaderText}</Text>
-        </View>
-      )}
-    </ScrollView>
+      {
+        loadingLocation && (
+          <View style={styles.loader}>
+            <ActivityIndicator size="large" color="#0000ff" />
+            <Text style={styles.loaderText}>{loaderText}</Text>
+          </View>
+        )
+      }
+    </ScrollView >
   );
 };
 

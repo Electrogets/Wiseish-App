@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,11 +13,11 @@ import axios from 'axios';
 import LinearGradient from 'react-native-linear-gradient';
 import SuccessPopup from './SuccessPopup';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import {Picker} from '@react-native-picker/picker';
+import { Picker } from '@react-native-picker/picker';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import {useSelector} from 'react-redux';
+import { useSelector } from 'react-redux';
 
-const VisitorReminder = ({navigation, route}) => {
+const VisitorReminder = ({ navigation, route }) => {
   const masterToken = useSelector(state => state?.tokenReducer?.accessToken);
   const [name, setName] = useState('');
   const [phone_number, setPhoneNumber] = useState('');
@@ -34,29 +34,24 @@ const VisitorReminder = ({navigation, route}) => {
     Appearance.getColorScheme() === 'dark',
   );
   const [refresh, setRefresh] = useState(false);
-  const [showDateTimeInput, setShowDateTimeInput] = useState(false); // New state variable
+  const [showDateTimeInput, setShowDateTimeInput] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const [selectedDateTime, setSelectedDateTime] = useState(null); // State to store selected date and time
+  const [selectedDateTime, setSelectedDateTime] = useState(null);
+  const [id, setId] = useState(route.params?.id || null);// State to store ID
 
   const resetFormAndNavigate = () => {
-    // Reset form fields to their initial state
     setName('');
     setPhoneNumber('');
     setEmail('');
     setVisit_type('');
     setDescription('');
-
-    // Trigger a refresh
     setRefresh(prevRefresh => !prevRefresh);
-
-    // Navigate to the Register screen
-    // navigation.navigate('Register');
+    setId(null); // Reset the ID
   };
 
-  // Use Effect to subscribe to appearance changes
   useEffect(() => {
-    const appearanceChangeHandler = ({colorScheme}) => {
+    const appearanceChangeHandler = ({ colorScheme }) => {
       setIsDarkMode(colorScheme === 'dark');
     };
 
@@ -66,9 +61,10 @@ const VisitorReminder = ({navigation, route}) => {
       subscription.remove();
     };
   }, []);
+
   const handleDateConfirm = date => {
     setSelectedDate(date);
-    setSelectedDateTime(date); // Update selectedDateTime with the chosen date and time
+    setSelectedDateTime(date);
     hideDatePicker();
   };
 
@@ -89,7 +85,6 @@ const VisitorReminder = ({navigation, route}) => {
   });
 
   const isValidPhoneNumber = phoneNumber => {
-    // Use a regular expression to check if the phone number is valid
     const phoneRegex = /^[0-9]{10}$/;
     return phoneRegex.test(phoneNumber);
   };
@@ -103,11 +98,10 @@ const VisitorReminder = ({navigation, route}) => {
         !isValidPhoneNumber(phone_number) ||
         !email ||
         !visit_type ||
-        !selectedDateTime || // Check if selectedDateTime is set
+        !selectedDateTime ||
         !description
       ) {
         if (!isValidPhoneNumber(phone_number)) {
-          // Set warning message for phone number
           setWarningMessages(prevState => ({
             ...prevState,
             phone_number: 'Please enter a valid 10-digit phone number.',
@@ -120,19 +114,19 @@ const VisitorReminder = ({navigation, route}) => {
       }
 
       const requestData = {
-        name: name.replace(/^A-za-z\s]/g, ''),
+        name: name.replace(/[^A-Za-z\s]/g, ''),
         email,
         phone_number,
-        visit_type: visit_type === '' ? null : visit_type, // Send null if visitType is an empty string
+        visit_type: visit_type === '' ? null : visit_type,
         description,
-        reminder_datetime: selectedDateTime.toISOString(), // Include selectedDateTime in ISO format
+        reminder_datetime: selectedDateTime.toISOString(),
       };
 
       console.log('Request Data:', requestData);
       console.log('AuthToken:', masterToken);
 
-      const registrationResponse = await axios.post(
-        'http://13.200.89.3:8000/reminders/',
+      const registrationResponse = await axios.put(
+        `https://wiseish.in/api/customers/${id}/update/`,
         requestData,
         {
           headers: {
@@ -141,35 +135,32 @@ const VisitorReminder = ({navigation, route}) => {
         },
       );
 
-      if (registrationResponse.status === 201) {
-        console.log('Registration successful');
-
+      if (registrationResponse.status === 200 || registrationResponse.status === 201) {
+        console.log('Update successful');
         setSuccessPopupVisible(true);
 
-        // Reset the form and navigate after a delay
         setTimeout(() => {
           setSuccessPopupVisible(false);
           resetFormAndNavigate();
-          setShowDateTimeInput(false); // Hide the date and time input fields
-          setSelectedDateTime(null); // Clear the selected date and time
+          setShowDateTimeInput(false);
+          setSelectedDateTime(null);
         }, 2000);
       } else {
         console.log(
           'Unexpected response during registration:',
           registrationResponse,
         );
-        setErrorPopupMessage('Registration failed. Please try again.');
+        setErrorPopupMessage('Update failed. Please try again.');
         setErrorPopupVisible(true);
       }
     } catch (error) {
-      console.error('Registration failed', error);
-
+      console.error('Update failed', error);
       let errorMessage = 'An unexpected error occurred. Please try again.';
 
       if (error.response) {
         console.log('Error Response:', error.response.data);
 
-        const {error: responseError} = error.response.data || {};
+        const { error: responseError } = error.response.data || {};
         if (responseError) {
           const firstErrorKey = Object.keys(responseError)[0];
           errorMessage = responseError[firstErrorKey];
@@ -212,7 +203,7 @@ const VisitorReminder = ({navigation, route}) => {
       marginBottom: 50,
     },
     darkMainHeading: {
-      color: '#fff', 
+      color: '#fff',
     },
     inputGroup: {
       marginBottom: 20,
@@ -225,7 +216,7 @@ const VisitorReminder = ({navigation, route}) => {
       marginBottom: 5,
     },
     darkText: {
-      color: '#fff', 
+      color: '#fff',
     },
     textInput: {
       fontSize: 18,
@@ -239,7 +230,6 @@ const VisitorReminder = ({navigation, route}) => {
       borderColor: '#999',
     },
     visit: {
-      // borderBottomWidth: 1,
       borderColor: '#727272',
       paddingLeft: -10,
     },
@@ -255,7 +245,7 @@ const VisitorReminder = ({navigation, route}) => {
       overflow: 'hidden',
     },
     darkButtonText: {
-      color: '#fff', 
+      color: '#fff',
     },
     gradient: {
       padding: 10,
@@ -266,11 +256,9 @@ const VisitorReminder = ({navigation, route}) => {
     buttonText: {
       color: isDarkMode ? '#fff' : 'white',
       fontWeight: 'bold',
-      // color: 'white',
-      fontWeight: 'bold',
     },
     darkButtonText: {
-      color: 'white', // Dark mode text color
+      color: 'white',
     },
     warningText: {
       color: 'red',
@@ -279,9 +267,6 @@ const VisitorReminder = ({navigation, route}) => {
     pickerContainer: {
       position: 'relative',
       overflow: 'hidden',
-      // borderRadius: 4, // Adjust as needed
-      // borderWidth: 1, // Adjust as needed
-      // borderColor: '#727272', // Adjust as needed
     },
     datetimeIcon: {
       position: 'absolute',
@@ -372,13 +357,10 @@ const VisitorReminder = ({navigation, route}) => {
           ) : null}
         </View>
 
-        {/* Render date and time input fields only if showDateTimeInput is true */}
-
         <View style={[styles.inputGroup, styles.dateborder]}>
           <Text style={[styles.placeholder, isDarkMode && styles.darkText]}>
             Date and Time
           </Text>
-          {/* Calendar icon */}
           <TouchableOpacity onPress={showDatePicker}>
             <Icon
               style={styles.icon}
@@ -387,7 +369,6 @@ const VisitorReminder = ({navigation, route}) => {
               color={isDarkMode ? '#fff' : '#000'}
             />
           </TouchableOpacity>
-          {/* Display selected date and time */}
           {selectedDateTime && (
             <Text style={[styles.placeholder, isDarkMode && styles.darkText]}>
               {selectedDateTime.toLocaleString()}
@@ -402,13 +383,6 @@ const VisitorReminder = ({navigation, route}) => {
             onCancel={hideDatePicker}
           />
         </View>
-
-
-
-
-
-
-
 
         <View style={[styles.inputGroup, styles.visit]}>
           <Text style={[styles.placeholder, isDarkMode && styles.darkText]}>
@@ -429,7 +403,7 @@ const VisitorReminder = ({navigation, route}) => {
                   visit_type: '',
                 }));
               }}
-              style={{color: isDarkMode ? '#fff' : 'black'}}
+              style={{ color: isDarkMode ? '#fff' : 'black' }}
               prompt="Select type">
               <Picker.Item
                 label="Select type"
@@ -444,13 +418,6 @@ const VisitorReminder = ({navigation, route}) => {
             <Text style={styles.warningText}>{warningMessages.visit_type}</Text>
           ) : null}
         </View>
-
-
-
-
-
-
-
 
         <View style={styles.inputGroup}>
           <Text style={[styles.placeholder, isDarkMode && styles.darkText]}>
@@ -503,4 +470,4 @@ const VisitorReminder = ({navigation, route}) => {
   );
 };
 
-export default VisitorReminder;
+export default React.memo(VisitorReminder);

@@ -1,7 +1,7 @@
-import React, {useState, useEffect} from 'react';
-import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
-import {Appearance, View, StyleSheet} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import React, { useState, useEffect } from 'react';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { Appearance, View, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import NotificationPage from './NotificationPage';
 import Register from './Register';
 import VisitorReminder from './VisitorReminder';
@@ -16,7 +16,7 @@ const TabNavigator = () => {
   const [refreshCustomerCount, setRefreshCustomerCount] = useState(false);
 
   useEffect(() => {
-    const appearanceChangeHandler = ({colorScheme}) => {
+    const appearanceChangeHandler = ({ colorScheme }) => {
       setIsDarkMode(colorScheme === 'dark');
     };
 
@@ -34,7 +34,7 @@ const TabNavigator = () => {
       <View
         style={[
           styles.container,
-          {backgroundColor: isDarkMode ? '#333' : '#fff'},
+          { backgroundColor: isDarkMode ? '#333' : '#fff' },
         ]}>
         <NotificationPage isDarkMode={isDarkMode} />
         <CustomerCountDisplay
@@ -58,7 +58,7 @@ const TabNavigator = () => {
           }}>
           <Tab.Screen
             name="Register"
-            options={{tabBarLabel: 'Register'}}
+            options={{ tabBarLabel: 'Register' }}
             children={() => (
               <Register refreshCustomerCount={setRefreshCustomerCount} />
             )}

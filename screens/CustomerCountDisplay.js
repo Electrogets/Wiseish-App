@@ -9,31 +9,57 @@ import {
   TextInput,
   Appearance,
   Dimensions,
+  RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { baseUrl } from './utils';
+import { format } from 'date-fns';
 
 const { width } = Dimensions.get('window'); // Get the window width
 
-const CustomerCountDisplay = ({ refreshInterval = 5000 }) => {
+const CustomerCountDisplay = ({ handleOverlay }) => {
   const [isCardClicked, setIsCardClicked] = useState(null);
   const [clickedCardData, setClickedCardData] = useState([]);
   const [visitorCount, setVisitorCount] = useState(0);
   const [shopperCount, setShopperCount] = useState(0);
-  const [editedFeedback, setEditedFeedback] = useState({});
   const masterToken = useSelector(state => state?.tokenReducer?.accessToken);
   const [selectedItemDateTime, setSelectedItemDateTime] = useState({});
   const [isDateTimePickerVisible, setDateTimePickerVisibility] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(Appearance.getColorScheme() === 'dark');
   const [selectedItemId, setSelectedItemId] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [editedFeedback, setEditedFeedback] = useState({});
+
+  const fetchVisitorAndShopperCounts = async () => {
+    handleOverlay();
+    try {
+      const visitorsResponse = await axios.get(`${baseUrl}/customers/visitors/`, {
+        headers: { Authorization: `Bearer ${masterToken}` },
+      });
+      const shoppersResponse = await axios.get(`${baseUrl}/customers/shoppers/`, {
+        headers: { Authorization: `Bearer ${masterToken}` },
+      });
+      setVisitorCount(visitorsResponse.data.length);
+      setShopperCount(shoppersResponse.data.length);
+    } catch (error) {
+      console.error('Error fetching customer counts:', error);
+      setVisitorCount(0);
+      setShopperCount(0);
+    } finally {
+      setLoading(false);
+      handleOverlay();
+    }
+  };
 
   useEffect(() => {
     fetchVisitorAndShopperCounts();
-    const interval = setInterval(fetchVisitorAndShopperCounts, refreshInterval);
-    return () => clearInterval(interval);
+    // const interval = setInterval(fetchVisitorAndShopperCounts, 5000); // Fetch every 5 seconds
+    // return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -44,30 +70,14 @@ const CustomerCountDisplay = ({ refreshInterval = 5000 }) => {
     return () => subscription.remove();
   }, []);
 
-  const fetchVisitorAndShopperCounts = async () => {
-    try {
-      const visitorsResponse = await axios.get('http://13.200.89.3:8000/customers/visitors/', {
-        headers: { Authorization: `Bearer ${masterToken}` },
-      });
-      const shoppersResponse = await axios.get('http://13.200.89.3:8000/customers/shoppers/', {
-        headers: { Authorization: `Bearer ${masterToken}` },
-      });
-      setVisitorCount(visitorsResponse.data.length);
-      setShopperCount(shoppersResponse.data.length);
-    } catch (error) {
-      console.error('Error fetching customer counts:', error);
-      setVisitorCount(0);
-      setShopperCount(0);
-    }
-  };
-
   const handleCardClick = async cardType => {
     let apiUrl = '';
+    setLoading(true);
 
     if (cardType === 'visitors') {
-      apiUrl = 'http://13.200.89.3:8000/customers/visitors/';
+      apiUrl = `${baseUrl}/customers/visitors/`;
     } else if (cardType === 'shoppers') {
-      apiUrl = 'http://13.200.89.3:8000/customers/shoppers/';
+      apiUrl = `${baseUrl}/customers/shoppers/`;
     } else {
       console.error('Invalid card type');
       return;
@@ -78,7 +88,24 @@ const CustomerCountDisplay = ({ refreshInterval = 5000 }) => {
         headers: { Authorization: `Bearer ${masterToken}` },
       });
       if (Array.isArray(response.data)) {
-        setClickedCardData(response.data);
+        const dataWithReminders = await Promise.all(response.data.map(async item => {
+          if (item.id) {
+            try {
+              const reminderResponse = await axios.get(`${baseUrl}/reminders/${item.id}/`, {
+                headers: { Authorization: `Bearer ${masterToken}` },
+              });
+              return {
+                ...item,
+                reminder_datetime: reminderResponse.data.reminder_datetime,
+              };
+            } catch (error) {
+              console.error('Error fetching reminder data:', error);
+              return item;
+            }
+          }
+          return item;
+        }));
+        setClickedCardData(dataWithReminders);
       } else {
         console.error('Invalid API response format');
         setClickedCardData([]);
@@ -88,6 +115,8 @@ const CustomerCountDisplay = ({ refreshInterval = 5000 }) => {
     } catch (error) {
       console.error(`Error fetching ${cardType} data`, error);
       setClickedCardData([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -118,7 +147,7 @@ const CustomerCountDisplay = ({ refreshInterval = 5000 }) => {
     }
   };
 
-  const handleSaveAllDetails = async itemId => {
+  const handleSaveAllDetails = async (itemId, item) => {
     const editedItemIndex = clickedCardData.findIndex(item => item.id === itemId);
     if (editedItemIndex === -1) {
       console.error('Item not found for editing');
@@ -126,51 +155,72 @@ const CustomerCountDisplay = ({ refreshInterval = 5000 }) => {
     }
 
     const editedItem = clickedCardData[editedItemIndex];
+    const feedbackDescription = editedFeedback[itemId] || '';
+    const formattedDate = selectedItemDateTime[itemId]
+      ? format(selectedItemDateTime[itemId], "yyyy-MM-dd'T'HH:mm:ss")
+      : null;
+
+    setLoading(true);
 
     try {
-      const response = await axios.put(
-        `http://13.200.89.3:8000/customers/${itemId}/update/`, // Update the endpoint to match your backend
-        {
-          description: editedFeedback[itemId] || '', // Assuming description is the feedback field
-          // notification_date: selectedItemDateTime[itemId] || null,
-          // notification_time: selectedItemDateTime[itemId] ? selectedItemDateTime[itemId].toLocaleTimeString() : null,
-        },
-        {
-          headers: { Authorization: `Bearer ${masterToken}` },
-        },
-      );
+      let updateDescription = false;
+      let updateReminder = false;
 
-      if (
-        response.data &&
-        response.data.description
-        // &&
-        // response.data.notification_date &&
-        // response.data.notification_time
-      ) {
-        const updatedItem = {
-          ...editedItem,
-          description: response.data.description,
-          // notification_date: response.data.notification_date,
-          // notification_time: response.data.notification_time,
-        };
+      // Check if feedback description is updated
+      if (editedFeedback[itemId]) {
+        const response1 = await axios.put(
+          `${baseUrl}/customers/${itemId}/update/`,
+          { description: feedbackDescription },
+          { headers: { Authorization: `Bearer ${masterToken}` } }
+        );
+        updateDescription = true;
+        editedItem.description = response1.data.description;
+      }
 
+      // Check if reminder date-time is updated
+      if (selectedItemDateTime[itemId]) {
+        const response2 = await axios.post(
+          `${baseUrl}/reminders/${itemId}/`,
+          {
+            customer_id: itemId,
+            reminder_datetime: formattedDate,
+          },
+          { headers: { Authorization: `Bearer ${masterToken}` } }
+        );
+        updateReminder = true;
+        editedItem.reminder_datetime = response2.data.reminder_datetime;
+      }
+
+      // Update the state only if either of the updates was successful
+      if (updateDescription || updateReminder) {
         const updatedData = [...clickedCardData];
-        updatedData[editedItemIndex] = updatedItem;
+        updatedData[editedItemIndex] = editedItem;
         setClickedCardData(updatedData);
-
-        console.log('All details saved successfully');
+        console.log('Details saved successfully');
       } else {
-        console.error('Invalid API response format');
+        console.log('No updates made');
       }
     } catch (error) {
-      console.error('Error saving all details:', error);
+      if (error.response) {
+        console.error('Error saving details:', error.response.data);
+      } else {
+        console.error('Error saving details:', error.message);
+      }
+    } finally {
+      setLoading(false);
     }
   };
-
   const handleModalClose = () => {
     setIsCardClicked(null);
     setClickedCardData([]);
     setEditedFeedback({});
+    handleOverlay();
+  };
+
+  const onRefresh = async () => {
+    setLoading(true);
+    await fetchVisitorAndShopperCounts();
+    setLoading(false);
   };
 
   const renderDateTimePicker = () => {
@@ -188,70 +238,112 @@ const CustomerCountDisplay = ({ refreshInterval = 5000 }) => {
 
   const renderDataList = () => {
     const reversedData = [...clickedCardData].reverse();
-    const listHeaderText = isCardClicked === 'visitors' ? 'Visitors' : isCardClicked === 'shoppers' ? 'Shoppers' : '';
+    const listHeaderText =
+      isCardClicked === 'visitors'
+        ? 'Visitors'
+        : isCardClicked === 'shoppers'
+          ? 'Shoppers'
+          : '';
+
     return (
       <Modal visible={isCardClicked !== null} animationType="slide" transparent={false}>
         <View style={[styles.expandedContainer, isDarkMode && styles.darkBackground]}>
-          <Text style={[styles.listHeader, isDarkMode && styles.darkText]}>{listHeaderText}</Text>
-          <ScrollView contentContainerStyle={styles.scrollContentContainer}>
-            {reversedData.map(item => {
-              if (!item || !item.id) {
-                return null;
-              }
-              // console.log("item", item);
+          <Text style={[styles.listHeader, isDarkMode && styles.darkText]}>
+            {!loading && `${listHeaderText}`}
+          </Text>
+          {loading ? (
+            <ActivityIndicator size="large" color="#0000ff" />
+          ) : (
+            <ScrollView
+              contentContainerStyle={styles.scrollContentContainer}
+              refreshControl={<RefreshControl refreshing={loading} onRefresh={onRefresh} />}>
+              {reversedData.map(item => {
+                if (!item || !item.id) {
+                  return null;
+                }
 
-              return (
-                <View key={item.id} style={[styles.listItem, isDarkMode && styles.darkListItem]}>
-                  <Text style={[styles.listItemText, isDarkMode && styles.darkText]}>Name: {item.id}</Text>
-                  <Text style={[styles.listItemText, isDarkMode && styles.darkText]}>Name: {item.name}</Text>
-                  <Text style={[styles.listItemText, isDarkMode && styles.darkText]}>Email: {item.email}</Text>
-                  <Text style={[styles.listItemText, isDarkMode && styles.darkText]}>Phone Number: {item.phone_number}</Text>
-                  <Text style={[styles.listItemText, isDarkMode && styles.darkText]}>Sales Person: {item.salesperson_name}</Text>
-                  {item.visit_type === 'shoppers' ? (
-                    <Text style={[styles.listItemText, isDarkMode && styles.darkText]}>Feedback: {item.description}</Text>
-                  ) : (
-                    <>
-                      <Text style={[styles.listItemText, isDarkMode && styles.darkText]}>Feedback:</Text>
-                      <TextInput
-                        style={[styles.feedbackInput, isDarkMode && styles.darkInput]}
-                        placeholder="Enter feedback"
-                        value={editedFeedback[item.id] || item.description}
-                        onChangeText={text => handleFeedbackEdit(item.id, text)}
-                      />
-                    </>
-                  )}
-                  {item.visit_type === 'visitors' && (
-                    <>
-                      <View style={styles.dateTimeContainer}>
-                        <Text style={[styles.listItemText, isDarkMode && styles.darkText]}>Reminder :
-                          {selectedItemDateTime[item.id]
-                            ? selectedItemDateTime[item.id].toLocaleString()
-                            : ''}
+                const formattedReminderDateTime = item.reminder_datetime
+                  ? format(new Date(item.reminder_datetime), 'Pp')
+                  : '';
+                const newSelectedDateTime = selectedItemDateTime[item.id]
+                  ? selectedItemDateTime[item.id].toLocaleString()
+                  : '';
+
+                return (
+                  <View key={item.id} style={[styles.listItem, isDarkMode && styles.darkListItem]}>
+                    <Text style={[styles.listItemText, isDarkMode && styles.darkText]}>
+                      ID: {item.id}
+                    </Text>
+                    <Text style={[styles.listItemText, isDarkMode && styles.darkText]}>
+                      Name: {item.name}
+                    </Text>
+                    <Text style={[styles.listItemText, isDarkMode && styles.darkText]}>
+                      Email: {item.email}
+                    </Text>
+                    <Text style={[styles.listItemText, isDarkMode && styles.darkText]}>
+                      Phone Number: {item.phone_number}
+                    </Text>
+                    <Text style={[styles.listItemText, isDarkMode && styles.darkText]}>
+                      Sales Person: {item.salesperson_name}
+                    </Text>
+                    {item.visit_type === 'shoppers' ? (
+                      <Text style={[styles.listItemText, isDarkMode && styles.darkText]}>
+                        Feedback: {item.description}
+                      </Text>
+                    ) : (
+                      <>
+                        <Text style={[styles.listItemText, isDarkMode && styles.darkText]}>
+                          Feedback:
                         </Text>
-                        <TouchableOpacity onPress={() => showDateTimePicker(item.id)}>
-                          <Icon name="clock-o" size={30} color={isDarkMode ? '#4CAF50' : 'green'} style={styles.clockIcon} />
-                        </TouchableOpacity>
-                      </View>
-                      <View style={styles.buttonContainer}>
-                        <TouchableOpacity style={styles.button} onPress={() => handleSaveAllDetails(item.id)}>
-                          <LinearGradient colors={['#6ACDDE', '#BB32DC']} style={styles.gradient}>
-                            <Text style={styles.buttonText}>Update</Text>
-                          </LinearGradient>
-                        </TouchableOpacity>
-                      </View>
-                    </>
-                  )}
-                </View>
-              );
-            })}
-          </ScrollView>
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.button} onPress={handleModalClose}>
-              <LinearGradient colors={['#6ACDDE', '#BB32DC']} style={styles.gradient}>
-                <Text style={styles.buttonText}>Close</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
+                        <TextInput
+                          style={[styles.feedbackInput, isDarkMode && styles.darkInput]}
+                          placeholder="Enter feedback"
+                          value={editedFeedback[item.id] || item.description}
+                          onChangeText={text => handleFeedbackEdit(item.id, text)}
+                          multiline
+                        />
+                      </>
+                    )}
+                    {item.visit_type === 'visitors' && (
+                      <>
+                        <View style={styles.dateTimeContainer}>
+                          <Text style={[styles.listItemText, isDarkMode && styles.darkText]}>
+                            Reminder: {newSelectedDateTime || formattedReminderDateTime}
+                          </Text>
+                          <TouchableOpacity onPress={() => showDateTimePicker(item.id)}>
+                            <Icon
+                              name="clock-o"
+                              size={30}
+                              color={isDarkMode ? '#4CAF50' : 'green'}
+                              style={styles.clockIcon}
+                            />
+                          </TouchableOpacity>
+                        </View>
+                        <View style={styles.buttonContainer}>
+                          <TouchableOpacity
+                            style={styles.button}
+                            onPress={() => handleSaveAllDetails(item.id, item)}>
+                            <LinearGradient colors={['#6ACDDE', '#BB32DC']} style={styles.gradient}>
+                              <Text style={styles.buttonText}>Update</Text>
+                            </LinearGradient>
+                          </TouchableOpacity>
+                        </View>
+                      </>
+                    )}
+                  </View>
+                );
+              })}
+            </ScrollView>
+          )}
+          {!loading &&
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity style={styles.button} onPress={handleModalClose}>
+                <LinearGradient colors={['#6ACDDE', '#BB32DC']} style={styles.gradient}>
+                  <Text style={styles.buttonText}>Close</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          }
         </View>
       </Modal>
     );
@@ -277,8 +369,8 @@ const CustomerCountDisplay = ({ refreshInterval = 5000 }) => {
           <Text style={styles.cardValue}>{shopperCount}</Text>
         </View>
       </TouchableOpacity>
-      {renderDataList()}
       {renderDateTimePicker()}
+      {isCardClicked !== null && renderDataList()}
     </View>
   );
 };
@@ -299,7 +391,7 @@ const styles = StyleSheet.create({
     elevation: 3,
     gap: 0,
     margin: 0,
-    width: "auto",
+    width: 'auto',
     marginBottom: 20,
     backgroundColor: '#f9f9f9', // Light mode background color
   },

@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,18 +8,18 @@ import {
   ScrollView,
   TouchableOpacity,
   Appearance,
+  ActivityIndicator,
 } from 'react-native';
-import {Picker} from '@react-native-picker/picker';
+import { Picker } from '@react-native-picker/picker';
 import axios from 'axios';
 import LinearGradient from 'react-native-linear-gradient';
 import SuccessPopup from './SuccessPopup';
-import {useSelector} from 'react-redux';
+import { useSelector } from 'react-redux';
 import CustomerCountDisplay from './CustomerCountDisplay';
 import NotificationPage from './NotificationPage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-
-const Register = ({refreshCustomerCount}) => {
+const Register = ({ refreshCustomerCount }) => {
   const masterToken = useSelector(state => state?.tokenReducer?.accessToken);
   const [name, setName] = useState('');
   const [phone_number, setPhoneNumber] = useState('');
@@ -30,11 +30,39 @@ const Register = ({refreshCustomerCount}) => {
   const [successPopupVisible, setSuccessPopupVisible] = useState(false);
   const [errorPopupVisible, setErrorPopupVisible] = useState(false);
   const [errorPopupMessage, setErrorPopupMessage] = useState('');
-  const [isDarkMode, setIsDarkMode] = useState(
-    Appearance.getColorScheme() === 'dark',
-  );
-  const [refresh, setRefresh] = useState(false);
-  // const [refreshCustomerCount, setRefreshCustomerCount] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(Appearance.getColorScheme() === 'dark');
+  const [warningMessages, setWarningMessages] = useState({
+    name: '',
+    phone_number: '',
+    email: '',
+    visit_type: '',
+    description: '',
+  });
+  const [overlayLoader, setOverlayLoader] = useState(false);
+
+  // Use Effect to subscribe to appearance changes
+  useEffect(() => {
+    const appearanceChangeHandler = ({ colorScheme }) => {
+      setIsDarkMode(colorScheme === 'dark');
+    };
+
+    const subscription = Appearance.addChangeListener(appearanceChangeHandler);
+
+    // Clean up the subscription when the component unmounts
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+  const isValidPhoneNumber = phoneNumber => {
+    // Use a regular expression to check if the phone number is valid
+    const phoneRegex = /^\+91[0-9]{10}$/;
+    return phoneRegex.test(phoneNumber);
+  };
+
+  const handleOverlay = () => {
+    setOverlayLoader(true);
+  };
 
   const resetFormAndNavigate = () => {
     // Reset form fields to their initial state
@@ -51,45 +79,11 @@ const Register = ({refreshCustomerCount}) => {
     // navigation.navigate('TabNavigator');
   };
 
-  // Use Effect to subscribe to appearance changes
-  useEffect(() => {
-    const appearanceChangeHandler = ({colorScheme}) => {
-      setIsDarkMode(colorScheme === 'dark');
-    };
-
-    const subscription = Appearance.addChangeListener(appearanceChangeHandler);
-
-    // Clean up the subscription when the component unmounts
-    return () => {
-      subscription.remove();
-    };
-  }, []);
-
-  const [warningMessages, setWarningMessages] = useState({
-    name: '',
-    phone_number: '',
-    email: '',
-    visit_type: '',
-    description: '',
-  });
-
-  const isValidPhoneNumber = phoneNumber => {
-    // Use a regular expression to check if the phone number is valid
-    const phoneRegex = /^\+91[0-9]{10}$/;
-    return phoneRegex.test(phoneNumber);
-  };
-
   const handleRegister = async () => {
     try {
       setLoading(true);
 
-      if (
-        !name ||
-        !isValidPhoneNumber(phone_number) ||
-        !email ||
-        !visit_type ||
-        !description
-      ) {
+      if (!name || !isValidPhoneNumber(phone_number) || !email || !visit_type || !description) {
         if (!isValidPhoneNumber(phone_number)) {
           // Set warning message for phone number
           setWarningMessages(prevState => ({
@@ -111,11 +105,8 @@ const Register = ({refreshCustomerCount}) => {
         description,
       };
 
-      console.log('Request Data:', requestData);
-      console.log('Token:', masterToken);
-
       const registrationResponse = await axios.post(
-        'http://13.200.89.3:8000/customer/register/',
+        'https://wiseish.in/api/customer/register/',
         requestData,
         {
           headers: {
@@ -125,15 +116,12 @@ const Register = ({refreshCustomerCount}) => {
       );
 
       if (registrationResponse.status === 201) {
-        console.log('Registration successful');
-
         setSuccessPopupVisible(true);
 
         // Reset the form and navigate after a delay
         setTimeout(() => {
           setSuccessPopupVisible(false);
           resetFormAndNavigate();
-          // refreshCustomerCount();
         }, 2000);
       } else {
         console.log(
@@ -151,7 +139,7 @@ const Register = ({refreshCustomerCount}) => {
       if (error.response) {
         console.log('Error Response:', error.response.data);
 
-        const {error: responseError} = error.response.data || {};
+        const { error: responseError } = error.response.data || {};
         if (responseError) {
           const firstErrorKey = Object.keys(responseError)[0];
           errorMessage = responseError[firstErrorKey];
@@ -175,13 +163,10 @@ const Register = ({refreshCustomerCount}) => {
 
   const styles = StyleSheet.create({
     container: {
-      display: 'flex',
+      flex: 1,
       padding: 15,
-    paddingTop: 10,
+      paddingTop: 10,
       backgroundColor: 'white',
-      height: '100%',
-      width: '100%',
-      
     },
     darkContainer: {
       backgroundColor: '#333',
@@ -222,7 +207,6 @@ const Register = ({refreshCustomerCount}) => {
       borderColor: '#999',
     },
     visit: {
-      // borderBottomWidth: 1,
       borderColor: '#727272',
       paddingLeft: -10,
     },
@@ -237,9 +221,6 @@ const Register = ({refreshCustomerCount}) => {
       borderRadius: 30,
       overflow: 'hidden',
     },
-    darkButtonText: {
-      color: '#fff',
-    },
     gradient: {
       padding: 10,
       borderRadius: 5,
@@ -248,8 +229,6 @@ const Register = ({refreshCustomerCount}) => {
     },
     buttonText: {
       color: isDarkMode ? '#fff' : 'white',
-      fontWeight: 'bold',
-      // color: 'white',
       fontWeight: 'bold',
     },
     darkButtonText: {
@@ -262,23 +241,40 @@ const Register = ({refreshCustomerCount}) => {
     pickerContainer: {
       position: 'relative',
       overflow: 'hidden',
-      // borderRadius: 4, // Adjust as needed
-      // borderWidth: 1, // Adjust as needed
-      // borderColor: '#727272', // Adjust as needed
+    },
+    overlay: {
+      ...StyleSheet.absoluteFill,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
     },
   });
 
+  useEffect(() => {
+    if (overlayLoader) {
+      // Simulate an asynchronous action that takes time to complete
+      const timeout = setTimeout(() => {
+        setOverlayLoader(false);
+      }, 2000);
+
+      // Clean up the timeout to prevent memory leaks
+      return () => clearTimeout(timeout);
+    }
+  }, [overlayLoader]);
+
   return (
-    
-    <ScrollView style={[styles.container, isDarkMode && styles.darkContainer]}>  
-     <NotificationPage isDarkMode={isDarkMode} /> 
-    <CustomerCountDisplay
-          isDarkMode={isDarkMode}
-        /> 
-        {/* <NotificationPage isDarkMode={isDarkMode} /> */}
-          <View>
-        <Text
-          style={[styles.mainHeading, isDarkMode && styles.darkMainHeading]}>
+    <ScrollView style={[styles.container, isDarkMode && styles.darkContainer]}>
+      {overlayLoader && (
+        <View style={styles.overlay}>
+          <ActivityIndicator size="large" color="#0000ff" />
+        </View>
+      )}
+      <CustomerCountDisplay
+        isDarkMode={isDarkMode}
+        handleOverlay={() => setOverlayLoader(true)}
+      />
+      <View>
+        <Text style={[styles.mainHeading, isDarkMode && styles.darkMainHeading]}>
           Customer Registration
         </Text>
         <View style={styles.inputGroup}>
@@ -312,11 +308,12 @@ const Register = ({refreshCustomerCount}) => {
             placeholderTextColor={isDarkMode ? '#999' : '#727272'}
             value={phone_number}
             onChangeText={text => {
-              // Check if the input starts with "+91" and adjust the value accordingly
               if (text.startsWith('+91')) {
-                setPhoneNumber(text.substring(0, 13)); // Limit to country code + 10 digits
+                setPhoneNumber(text.substring(0, 13));
               } else {
-                setPhoneNumber('+91' + text.replace(/[^\d]/g, '').slice(0, 10)); // Add country code and limit to 10 digits
+                setPhoneNumber(
+                  '+91' + text.replace(/[^\d]/g, '').slice(0, 10),
+                );
               }
               setWarningMessages(prevState => ({
                 ...prevState,
@@ -372,7 +369,7 @@ const Register = ({refreshCustomerCount}) => {
                   visit_type: '',
                 }));
               }}
-              style={{color: isDarkMode ? '#fff' : 'black'}}
+              style={{ color: isDarkMode ? '#fff' : 'black' }}
               prompt="Select type">
               <Picker.Item
                 label="Select type"
@@ -384,7 +381,9 @@ const Register = ({refreshCustomerCount}) => {
             </Picker>
           </View>
           {warningMessages.visit_type ? (
-            <Text style={styles.warningText}>{warningMessages.visit_type}</Text>
+            <Text style={styles.warningText}>
+              {warningMessages.visit_type}
+            </Text>
           ) : null}
         </View>
         <View style={styles.inputGroup}>
@@ -418,25 +417,24 @@ const Register = ({refreshCustomerCount}) => {
             }
             style={styles.gradient}>
             <Text
-              style={[styles.buttonText, isDarkMode && styles.darkButtonText]}>
+              style={[
+                styles.buttonText,
+                isDarkMode && styles.darkButtonText,
+              ]}>
               Checkin
             </Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>
-      <View>
-        <SuccessPopup
-          isVisible={successPopupVisible}
-          onClose={() => {
-            setSuccessPopupVisible(false);
-            resetFormAndNavigate();
-          }}
-          isDarkMode={isDarkMode}
-          // backgroundColor="#fff" // Set your preferred background color
-          // textColor="#000"      // Set your preferred text color
-        />
-   </View>
-    </ScrollView >
+      <SuccessPopup
+        isVisible={successPopupVisible}
+        onClose={() => {
+          setSuccessPopupVisible(false);
+          resetFormAndNavigate();
+        }}
+        isDarkMode={isDarkMode}
+      />
+    </ScrollView>
   );
 };
 

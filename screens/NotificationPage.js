@@ -93,7 +93,7 @@ const NotificationPage = ({ isDarkMode, authToken }) => {
         setUnreadNotificationCount(0);
       }
     } catch (error) {
-      // console.error('Error fetching notifications:', error);
+      console.error('Error fetching notifications:', error);
     }
   };
 
