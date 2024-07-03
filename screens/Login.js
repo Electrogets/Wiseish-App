@@ -83,6 +83,7 @@ const Login = ({ navigation, route }) => {
   const [userLocation, setUserLocation] = useState(null);
   const [isLocationAllowed, setIsLocationAllowed] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [showErrorMessage, setShowErrorMessage] = useState(false);
 
 
 
@@ -152,13 +153,17 @@ const Login = ({ navigation, route }) => {
         const allowedLocation = isUserInAllowedLocation(position);
         console.log('Is Location Allowed?', allowedLocation);
         setIsLocationAllowed(allowedLocation);
-        setLoaderText('Location Fetch Successfully');
-        console.log(loaderText)
+        if (allowedLocation) {
+          setShowSuccessMessage(true);
+        } else {
+          setShowErrorMessage(true);
+        }
+        // setLoaderText('Location Fetch Successfully');
+        // console.log(loaderText)
       } catch (error) {
         console.error('Error getting location:', error);
         setIsLocationAllowed(false);
-        setLoaderText('Location Fetch Successfully');
-        setShowSuccessMessage(true);
+        setShowErrorMessage(true);
         setTimeout(() => {
           setShowSuccessMessage(false);
         }, 3000); // Show the success message for 3 seconds
@@ -166,7 +171,10 @@ const Login = ({ navigation, route }) => {
       finally {
         setLoadingLocation(false);
         // setLoaderText('Error fetching location');
-
+        setTimeout(() => {
+          setShowSuccessMessage(false);
+          setShowErrorMessage(false);
+        }, 2000);
       }
     };
 
@@ -568,6 +576,24 @@ const Login = ({ navigation, route }) => {
       fontWeight: 'bold',
       color: '#ffffff',
     },
+    messageContainer: {
+      width: '100%',
+      alignItems: 'center',
+      paddingVertical: 10,
+      position: 'absolute',
+      top: 0,
+      zIndex: 999,
+    },
+    messageText: {
+      color: isDarkMode ? 'white' : '#000',
+      fontSize: 16,
+    },
+    successMessage: {
+      backgroundColor: isDarkMode ? 'green' : 'green',
+    },
+    errorMessage: {
+      backgroundColor: isDarkMode ? 'red' : 'red',
+    },
   });
 
   return (
@@ -701,6 +727,18 @@ const Login = ({ navigation, route }) => {
             <Text style={styles.loaderText}>{loaderText}</Text>
           </View>
         )
+      }
+      {showSuccessMessage && (
+        <View style={[styles.messageContainer, styles.successMessage]}>
+          <Text style={styles.messageText}>Location fetched successfully!</Text>
+        </View>
+      )}
+
+      {showErrorMessage && (
+        <View style={[styles.messageContainer, styles.errorMessage]}>
+          <Text style={styles.messageText}>Error fetching location. Please try again.</Text>
+        </View >
+      )
       }
     </ScrollView >
   );
