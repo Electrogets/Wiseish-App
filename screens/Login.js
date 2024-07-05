@@ -76,14 +76,12 @@ const Login = ({ navigation, route }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [loaderText, setLoaderText] = useState('Fetching Location...');
-  const [isDarkMode, setIsDarkMode] = useState(
-    Appearance.getColorScheme() === 'dark',
-  );
 
   const [userLocation, setUserLocation] = useState(null);
   const [isLocationAllowed, setIsLocationAllowed] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [showErrorMessage, setShowErrorMessage] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(Appearance.getColorScheme() === 'dark');
 
 
 
@@ -290,9 +288,11 @@ const Login = ({ navigation, route }) => {
 
 
       if (response.status === 200) {
+
         const userInfo = response.data;
         console.log('Login successful:', userInfo);
         setShowSuccessPopup(true);
+        setLoading(true);
         dispatch(actionCreators.setMasterToken(userInfo?.tokens?.access));
         dispatch(actionCreators.setRefreshToken(userInfo?.tokens?.refresh));
         setTimeout(() => {
@@ -304,6 +304,7 @@ const Login = ({ navigation, route }) => {
 
           navigation.navigate('Register');
         }, 1000);
+
       } else {
         console.log('Unexpected response:', response);
       }

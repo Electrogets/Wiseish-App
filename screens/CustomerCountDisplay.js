@@ -34,6 +34,9 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [editedFeedback, setEditedFeedback] = useState({});
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [showNoUpdatesMessage, setShowNoUpdatesMessage] = useState(false);
+  const [messageTimeout, setMessageTimeout] = useState(null);
 
   const fetchVisitorAndShopperCounts = async () => {
     handleOverlay();
@@ -70,6 +73,34 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
     return () => subscription.remove();
   }, []);
 
+  useEffect(() => {
+    // Cleanup timeout when component unmounts or messages change
+    return () => {
+      if (messageTimeout) {
+        clearTimeout(messageTimeout);
+      }
+    };
+  }, [messageTimeout]);
+
+
+
+  const fetchReminderData = async itemId => {
+    try {
+      const response = await axios.get(`${baseUrl}/salesperson/notifications/`, {
+        headers: { Authorization: `Bearer ${masterToken}` },
+      });
+      return response.data;
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        console.warn('Reminder not found for item:', itemId);
+        return null;
+      } else {
+        console.error('Error fetching reminder data:', error);
+        throw error;
+      }
+    }
+  };
+
   const handleCardClick = async cardType => {
     let apiUrl = '';
     setLoading(true);
@@ -83,28 +114,25 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
       return;
     }
 
+
     try {
-      const response = await axios.get(apiUrl, {
-        headers: { Authorization: `Bearer ${masterToken}` },
-      });
-      if (Array.isArray(response.data)) {
-        const dataWithReminders = await Promise.all(response.data.map(async item => {
-          if (item.id) {
-            try {
-              const reminderResponse = await axios.get(`${baseUrl}/reminders/${item.id}/`, {
-                headers: { Authorization: `Bearer ${masterToken}` },
-              });
-              return {
-                ...item,
-                reminder_datetime: reminderResponse.data.reminder_datetime,
-              };
-            } catch (error) {
-              console.error('Error fetching reminder data:', error);
-              return item;
-            }
-          }
-          return item;
-        }));
+      const [mainDataResponse, reminderData] = await Promise.all([
+        axios.get(apiUrl, {
+          headers: { Authorization: `Bearer ${masterToken}` },
+        }),
+        fetchReminderData(),
+      ]);
+
+      if (Array.isArray(mainDataResponse.data)) {
+        const dataWithReminders = mainDataResponse.data.map(item => {
+          const reminder = reminderData.find(
+            reminderItem => reminderItem.customer.id === item.id
+          );
+          return {
+            ...item,
+            reminder_datetime: reminder ? reminder.reminder_datetime : null,
+          };
+        });
         setClickedCardData(dataWithReminders);
       } else {
         console.error('Invalid API response format');
@@ -146,9 +174,8 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
       setEditedFeedback(prevState => ({ ...prevState, [itemId]: newFeedback }));
     }
   };
-
   const handleSaveAllDetails = async (itemId, item) => {
-    const editedItemIndex = clickedCardData.findIndex(item => item.id === itemId);
+    const editedItemIndex = clickedCardData.findIndex(dataItem => dataItem.id === itemId);
     if (editedItemIndex === -1) {
       console.error('Item not found for editing');
       return;
@@ -174,13 +201,22 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
           { headers: { Authorization: `Bearer ${masterToken}` } }
         );
         updateDescription = true;
-        editedItem.description = response1.data.description;
+        editedItem.description = response1.data.description; // Assuming response structure has 'description' field
       }
 
       // Check if reminder date-time is updated
       if (selectedItemDateTime[itemId]) {
-        const response2 = await axios.post(
-          `${baseUrl}/reminders/${itemId}/`,
+        let reminderApiUrl = `${baseUrl}/reminders/`;
+
+        // Check if the reminder already exists (using item.id to get reminder id)
+        if (item.reminder_id) {
+          reminderApiUrl = `${baseUrl}/reminders/${item.reminder_id}/`;
+        }
+
+        const method = item.reminder_id ? axios.put : axios.post;
+
+        const response2 = await method(
+          reminderApiUrl,
           {
             customer_id: itemId,
             reminder_datetime: formattedDate,
@@ -188,7 +224,7 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
           { headers: { Authorization: `Bearer ${masterToken}` } }
         );
         updateReminder = true;
-        editedItem.reminder_datetime = response2.data.reminder_datetime;
+        editedItem.reminder_id = response2.data.id; // Assuming response structure has 'reminder_datetime' field
       }
 
       // Update the state only if either of the updates was successful
@@ -197,8 +233,24 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
         updatedData[editedItemIndex] = editedItem;
         setClickedCardData(updatedData);
         console.log('Details saved successfully');
+        setShowSuccessMessage(true); // Show success message
+        setShowNoUpdatesMessage(false);
+        // Set timeout to hide success message after 3 seconds
+        const timeout = setTimeout(() => {
+          setShowSuccessMessage(false);
+          setShowNoUpdatesMessage(false);
+
+        }, 3000);
+        setMessageTimeout(timeout);
       } else {
         console.log('No updates made');
+        setShowNoUpdatesMessage(true);
+        setShowSuccessMessage(false);
+        const timeout = setTimeout(() => {
+          setShowNoUpdatesMessage(false);
+        }, 3000);
+        setMessageTimeout(timeout); // Save timeout ID to state
+
       }
     } catch (error) {
       if (error.response) {
@@ -219,6 +271,8 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
 
   const onRefresh = async () => {
     setLoading(true);
+    setEditedFeedback({});
+    setSelectedItemDateTime({});
     await fetchVisitorAndShopperCounts();
     setLoading(false);
   };
@@ -308,7 +362,9 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
                       <>
                         <View style={styles.dateTimeContainer}>
                           <Text style={[styles.listItemText, isDarkMode && styles.darkText]}>
-                            Reminder: {newSelectedDateTime || formattedReminderDateTime}
+                            Reminder:
+                            {newSelectedDateTime || formattedReminderDateTime}
+
                           </Text>
                           <TouchableOpacity onPress={() => showDateTimePicker(item.id)}>
                             <Icon
@@ -333,8 +389,15 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
                   </View>
                 );
               })}
+
             </ScrollView>
           )}
+          {!loading && reversedData.length === 0 && (
+            <View style={styles.messageContainer}>
+              <Text style={styles.messageText}>No data available</Text>
+            </View>
+          )}
+
           {!loading &&
             <View style={styles.buttonContainer}>
               <TouchableOpacity style={styles.button} onPress={handleModalClose}>
@@ -345,6 +408,16 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
             </View>
           }
         </View>
+        {showSuccessMessage && (
+          <View style={[styles.messageContainer, styles.successMessage]}>
+            <Text style={styles.messageText}>Details Updated successfully!</Text>
+          </View>
+        )}
+        {showNoUpdatesMessage && (
+          <View style={[styles.messageContainer, styles.noUpdateMessage]}>
+            <Text style={styles.messageText}>No updates Made</Text>
+          </View>
+        )}
       </Modal>
     );
   };
@@ -476,6 +549,24 @@ const styles = StyleSheet.create({
   },
   darkInput: {
     color: '#fff', // Dark mode text color for input
+  },
+  messageContainer: {
+    width: '100%',
+    alignItems: 'center',
+    paddingVertical: 10,
+    position: 'absolute',
+    top: 0,
+    zIndex: 999,
+  },
+  messageText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  successMessage: {
+    backgroundColor: 'green',
+  },
+  noUpdateMessage: {
+    backgroundColor: 'red',
   },
 });
 
