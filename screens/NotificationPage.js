@@ -12,16 +12,13 @@ import axios from 'axios';
 import { useSelector } from 'react-redux';
 import { ScrollView } from 'react-native-gesture-handler';
 import moment from 'moment';
-import messaging from '@react-native-firebase/messaging';
-import { PermissionsAndroid } from 'react-native';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
 
-const NotificationPage = ({ isDarkMode, authToken }) => {
+const NotificationPage = ({ isDarkMode }) => {
   const [notifications, setNotifications] = useState([]);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
   const masterToken = useSelector(state => state?.tokenReducer?.accessToken);
 
@@ -37,61 +34,39 @@ const NotificationPage = ({ isDarkMode, authToken }) => {
   };
 
   useEffect(() => {
-    console.log('Registration success changed:', registrationSuccess);
     fetchNotifications();
 
     const intervalId = setInterval(() => {
       fetchNotifications();
     }, 1000);
 
-    const requestUserPermission = async () => {
-      const authStatus = await messaging().requestPermission();
-      const enabled =
-        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-
-      if (enabled) {
-        console.log('Authorization status:', authStatus);
-      }
-    };
-
-    requestUserPermission();
-
-    const unsubscribe = messaging().onMessage(async remoteMessage => {
-      Alert.alert('New Notification', remoteMessage.notification.body);
-      fetchNotifications();
-    });
-
-    return () => {
-      clearInterval(intervalId);
-      unsubscribe();
-    };
-  }, [registrationSuccess]);
+    return () => clearInterval(intervalId);
+  }, []);
 
   const fetchNotifications = async () => {
     try {
       const response = await axios.get(
-        'http://13.200.89.3:8000/salesperson/notifications/',
+        'https://wiseish.in/api/salesperson/notifications/',
         {
           headers: {
             Authorization: `Bearer ${masterToken}`,
           },
         },
       );
+      // console.log('API response:', response.data);
       const now = moment();
+
       const filteredNotifications = response.data.filter(notification => {
         const reminderDateTime = moment(notification.reminder_datetime);
         return reminderDateTime.isSame(now, 'minute');
       });
 
+      // console.log('Filtered notifications:', filteredNotifications); // Log the filtered notifications
+
       setNotifications(filteredNotifications);
       setUnreadNotificationCount(
         filteredNotifications.filter(notification => !notification.read).length,
       );
-
-      if (filteredNotifications.length === 0) {
-        setUnreadNotificationCount(0);
-      }
     } catch (error) {
       console.error('Error fetching notifications:', error);
     }
@@ -99,14 +74,9 @@ const NotificationPage = ({ isDarkMode, authToken }) => {
 
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);
-    if (isExpanded) {
+    if (!isExpanded) {
       markAllNotificationsAsRead();
     }
-  };
-
-  const handleSuccessfulRegistration = () => {
-    setRegistrationSuccess(true);
-    console.log('Registration success:', registrationSuccess);
   };
 
   const markAllNotificationsAsRead = () => {
@@ -121,11 +91,7 @@ const NotificationPage = ({ isDarkMode, authToken }) => {
 
   return (
     <View style={[styles.container, isDarkMode && styles.darkContainer]}>
-      <TouchableOpacity
-        onPress={() => {
-          toggleExpand();
-          handleSuccessfulRegistration();
-        }}>
+      <TouchableOpacity onPress={toggleExpand}>
         <Icon
           name="bell"
           size={25}
@@ -141,7 +107,11 @@ const NotificationPage = ({ isDarkMode, authToken }) => {
         )}
       </TouchableOpacity>
       {isExpanded && (
-        <View style={[styles.expandedContainer, isDarkMode && styles.darkExpandedContainer]}>
+        <View
+          style={[
+            styles.expandedContainer,
+            isDarkMode && styles.darkExpandedContainer,
+          ]}>
           <ScrollView
             contentContainerStyle={styles.scrollContent}
             style={styles.scrollContainer}>
@@ -152,30 +122,45 @@ const NotificationPage = ({ isDarkMode, authToken }) => {
                 style={[
                   styles.notificationItem,
                   notification.read && styles.readNotification,
-                  isDarkMode && styles.darkNotificationItem, // Apply dark mode styles
+                  isDarkMode && styles.darkNotificationItem,
+                  !notification.read && styles.unreadNotification,
                 ]}>
-                <Text style={[styles.notificationText, isDarkMode && styles.darkNotificationText]}>
-                  ID: {notification.id}
+                <Text
+                  style={[
+                    styles.notificationText,
+                    isDarkMode && styles.darkNotificationText,
+                  ]}>
+                  Customer Name: {notification.customer.name}
                 </Text>
-                <Text style={[styles.notificationText, isDarkMode && styles.darkNotificationText]}>
-                  Name: {notification.name}
+                <Text
+                  style={[
+                    styles.notificationText,
+                    isDarkMode && styles.darkNotificationText,
+                  ]}>
+                  Phone Number: {notification.customer.phone_number}
                 </Text>
-                <Text style={[styles.notificationText, isDarkMode && styles.darkNotificationText]}>
-                  Email: {notification.email}
+                <Text
+                  style={[
+                    styles.notificationText,
+                    isDarkMode && styles.darkNotificationText,
+                  ]}>
+                  Description: {notification.customer.description}
                 </Text>
-                <Text style={[styles.notificationText, isDarkMode && styles.darkNotificationText]}>
-                  Number: {notification.number}
-                </Text>
-                <Text style={[styles.notificationText, isDarkMode && styles.darkNotificationText]}>
+                <Text
+                  style={[
+                    styles.notificationText,
+                    isDarkMode && styles.darkNotificationText,
+                  ]}>
                   Reminder Date:{' '}
                   {moment(notification.reminder_datetime).format('Do MMMM YYYY')}
                 </Text>
-                <Text style={[styles.notificationText, isDarkMode && styles.darkNotificationText]}>
+                <Text
+                  style={[
+                    styles.notificationText,
+                    isDarkMode && styles.darkNotificationText,
+                  ]}>
                   Reminder Time:{' '}
                   {moment(notification.reminder_datetime).format('h:mm a')}
-                </Text>
-                <Text style={[styles.notificationText, isDarkMode && styles.darkNotificationText]}>
-                  Salesperson Name: {notification.salesperson_name}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -200,7 +185,10 @@ const styles = StyleSheet.create({
   darkContainer: {
     backgroundColor: '#333',
   },
-  icon: {},
+  icon: {
+    marginTop: 20,
+    left: 50,
+  },
   notificationCount: {
     position: 'absolute',
     top: 5,
@@ -240,6 +228,12 @@ const styles = StyleSheet.create({
   darkNotificationItem: {
     borderBottomColor: '#555',
   },
+  unreadNotification: {
+    backgroundColor: '#f8d7da',
+  },
+  readNotification: {
+    backgroundColor: '#f0f0f0',
+  },
   notificationText: {
     fontSize: 16,
     marginBottom: 5,
@@ -261,9 +255,6 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 30,
     backgroundColor: 'rgba(0, 0, 0, 0.9)',
-  },
-  readNotification: {
-    backgroundColor: '#f0f0f0',
   },
 });
 
