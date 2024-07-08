@@ -20,7 +20,7 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { baseUrl } from './utils';
 import { format } from 'date-fns';
 
-const { width } = Dimensions.get('window'); // Get the window width
+const { width, height } = Dimensions.get('window'); // Get the window dimensions
 
 const CustomerCountDisplay = ({ handleOverlay }) => {
   const [isCardClicked, setIsCardClicked] = useState(null);
@@ -61,8 +61,6 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
 
   useEffect(() => {
     fetchVisitorAndShopperCounts();
-    // const interval = setInterval(fetchVisitorAndShopperCounts, 5000); // Fetch every 5 seconds
-    // return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -74,15 +72,12 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
   }, []);
 
   useEffect(() => {
-    // Cleanup timeout when component unmounts or messages change
     return () => {
       if (messageTimeout) {
         clearTimeout(messageTimeout);
       }
     };
   }, [messageTimeout]);
-
-
 
   const fetchReminderData = async itemId => {
     try {
@@ -113,7 +108,6 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
       console.error('Invalid card type');
       return;
     }
-
 
     try {
       const [mainDataResponse, reminderData] = await Promise.all([
@@ -174,6 +168,7 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
       setEditedFeedback(prevState => ({ ...prevState, [itemId]: newFeedback }));
     }
   };
+
   const handleSaveAllDetails = async (itemId, item) => {
     const editedItemIndex = clickedCardData.findIndex(dataItem => dataItem.id === itemId);
     if (editedItemIndex === -1) {
@@ -193,7 +188,6 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
       let updateDescription = false;
       let updateReminder = false;
 
-      // Check if feedback description is updated
       if (editedFeedback[itemId]) {
         const response1 = await axios.put(
           `${baseUrl}/customers/${itemId}/update/`,
@@ -201,14 +195,12 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
           { headers: { Authorization: `Bearer ${masterToken}` } }
         );
         updateDescription = true;
-        editedItem.description = response1.data.description; // Assuming response structure has 'description' field
+        editedItem.description = response1.data.description;
       }
 
-      // Check if reminder date-time is updated
       if (selectedItemDateTime[itemId]) {
         let reminderApiUrl = `${baseUrl}/reminders/`;
 
-        // Check if the reminder already exists (using item.id to get reminder id)
         if (item.reminder_id) {
           reminderApiUrl = `${baseUrl}/reminders/${item.reminder_id}/`;
         }
@@ -224,22 +216,20 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
           { headers: { Authorization: `Bearer ${masterToken}` } }
         );
         updateReminder = true;
-        editedItem.reminder_id = response2.data.id; // Assuming response structure has 'reminder_datetime' field
+        editedItem.reminder_id = response2.data.id;
       }
 
-      // Update the state only if either of the updates was successful
       if (updateDescription || updateReminder) {
         const updatedData = [...clickedCardData];
         updatedData[editedItemIndex] = editedItem;
         setClickedCardData(updatedData);
         console.log('Details saved successfully');
-        setShowSuccessMessage(true); // Show success message
+        setShowSuccessMessage(true);
         setShowNoUpdatesMessage(false);
-        // Set timeout to hide success message after 3 seconds
+
         const timeout = setTimeout(() => {
           setShowSuccessMessage(false);
           setShowNoUpdatesMessage(false);
-
         }, 3000);
         setMessageTimeout(timeout);
       } else {
@@ -249,8 +239,7 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
         const timeout = setTimeout(() => {
           setShowNoUpdatesMessage(false);
         }, 3000);
-        setMessageTimeout(timeout); // Save timeout ID to state
-
+        setMessageTimeout(timeout);
       }
     } catch (error) {
       if (error.response) {
@@ -262,6 +251,7 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
       setLoading(false);
     }
   };
+
   const handleModalClose = () => {
     setIsCardClicked(null);
     setClickedCardData([]);
@@ -277,18 +267,16 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
     setLoading(false);
   };
 
-  const renderDateTimePicker = () => {
-    return (
-      <DateTimePickerModal
-        isVisible={isDateTimePickerVisible}
-        mode="datetime"
-        date={selectedItemDateTime[selectedItemId] || new Date()}
-        minimumDate={new Date()}
-        onConfirm={handleDateConfirm}
-        onCancel={hideDateTimePicker}
-      />
-    );
-  };
+  const renderDateTimePicker = () => (
+    <DateTimePickerModal
+      isVisible={isDateTimePickerVisible}
+      mode="datetime"
+      date={selectedItemDateTime[selectedItemId] || new Date()}
+      minimumDate={new Date()}
+      onConfirm={handleDateConfirm}
+      onCancel={hideDateTimePicker}
+    />
+  );
 
   const renderDataList = () => {
     const reversedData = [...clickedCardData].reverse();
@@ -424,10 +412,12 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={() => handleCardClick('registeredCustomers')}>
+      <TouchableOpacity
+      // onPress={() => handleCardClick('registeredCustomers')}
+      >
         <View style={[styles.card, styles.registeredCustomersCard]}>
           <Text style={styles.cardTitle}>Total Customers</Text>
-          <Text style={styles.cardValue}>{visitorCount + shopperCount}</Text>
+          <Text style={styles.cardValuer}>{visitorCount + shopperCount}</Text>
         </View>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => handleCardClick('visitors')}>
@@ -453,9 +443,10 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 0,
+    gap: 2,
     padding: 5,
-    marginTop: 5,
+    marginTop: -0,
+    marginLeft: 0
   },
   card: {
     borderRadius: 10,
@@ -479,6 +470,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#4CAF50', // Text color for light mode
   },
+  cardValuer: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'red', // Text color for light mode
+  },
+
   expandedContainer: {
     flex: 1,
     justifyContent: 'center',
