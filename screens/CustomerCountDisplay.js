@@ -19,6 +19,10 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { baseUrl } from './utils';
 import { format } from 'date-fns';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
 
 const { width, height } = Dimensions.get('window'); // Get the window dimensions
 
@@ -387,7 +391,7 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
           )}
 
           {!loading &&
-            <View style={styles.buttonContainer}>
+            <View style={[styles.buttonContainer, styles.btnContainer]}>
               <TouchableOpacity style={styles.button} onPress={handleModalClose}>
                 <LinearGradient colors={['#6ACDDE', '#BB32DC']} style={styles.gradient}>
                   <Text style={styles.buttonText}>Close</Text>
@@ -442,36 +446,35 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 2,
-    padding: 5,
-    marginTop: -0,
-    marginLeft: 0
+    justifyContent: 'left',
+    gap: 3,
+    padding: width * 0.05,
+    marginTop: height * (-0.00),
+    marginLeft: wp('0%'),
   },
   card: {
     borderRadius: 10,
-    padding: 15,
+    padding: width * 0.03,
     alignItems: 'center',
     elevation: 3,
-    gap: 0,
-    margin: 0,
-    width: 'auto',
-    marginBottom: 20,
+    width: "auto",
+    marginBottom: height * 0.0,
     backgroundColor: '#f9f9f9', // Light mode background color
+    // marginHorizontal: width * 0.00,
   },
   cardTitle: {
-    fontSize: 15,
+    fontSize: width * 0.036,
     fontWeight: 'bold',
-    marginBottom: 5,
+    marginBottom: height * 0.011,
     color: 'black', // Text color for light mode
   },
   cardValue: {
-    fontSize: 18,
+    fontSize: width * 0.046,
     fontWeight: 'bold',
     color: '#4CAF50', // Text color for light mode
   },
   cardValuer: {
-    fontSize: 20,
+    fontSize: width * 0.046,
     fontWeight: 'bold',
     color: 'red', // Text color for light mode
   },
@@ -480,12 +483,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: width * 0.021,
   },
   listHeader: {
-    fontSize: 20,
+    fontSize: width * 0.056,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: height * 0.01,
   },
   listItem: {
     width: width - 40, // Adjust the width to be the screen width minus padding
@@ -505,21 +508,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   clockIcon: {
-    marginLeft: 10,
-    top: -5,
+    marginLeft: width * 0.030,
+    marginTop: height * -0.0099,
   },
+  // btnContainer: {
+  //   borderTopWidth: 3,
+  //   borderColor: "white",
+  //   width: '100%',
+  // },
   buttonContainer: {
+    // borderWidth: 1,
     width: '50%',
     marginLeft: 'auto',
     marginRight: 'auto',
-    marginTop: 10,
+    marginTop: height * 0.01,
   },
   button: {
     borderRadius: 30,
     overflow: 'hidden',
   },
   gradient: {
-    padding: 10,
+
+    padding: width * 0.025,
     borderRadius: 5,
     alignItems: 'center',
     justifyContent: 'center',
@@ -532,8 +542,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 5,
-    padding: 10,
-    marginBottom: 10,
+    padding: width * 0.02,
+    marginBottom: height * 0.02,
   },
   darkBackground: {
     backgroundColor: '#333', // Dark mode background color
@@ -550,14 +560,14 @@ const styles = StyleSheet.create({
   messageContainer: {
     width: '100%',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: height * 0.0100,
     position: 'absolute',
     top: 0,
     zIndex: 999,
   },
   messageText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: width * 0.04,
   },
   successMessage: {
     backgroundColor: 'green',

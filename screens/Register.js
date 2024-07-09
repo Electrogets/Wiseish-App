@@ -269,11 +269,12 @@ const Register = ({ refreshCustomerCount }) => {
           <ActivityIndicator size="large" color="#0000ff" />
         </View>
       )}
-      <NotificationPage isDarkMode={isDarkMode} />
+
       <CustomerCountDisplay
         isDarkMode={isDarkMode}
         handleOverlay={() => setOverlayLoader(true)}
       />
+      <NotificationPage isDarkMode={isDarkMode} />
 
       <View>
         <Text style={[styles.mainHeading, isDarkMode && styles.darkMainHeading]}>

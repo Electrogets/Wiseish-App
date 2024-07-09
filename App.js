@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Provider, useSelector } from 'react-redux';
 import SplashScreen from './screens/SplashScreen';
 import Login from './screens/Login';
@@ -22,17 +23,19 @@ const MainNavigator = () => {
   }, [masterToken]);
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName={isLoggedIn ? 'Home' : 'Splash'}
-        screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Splash" component={SplashScreen} />
-        <Stack.Screen name="Login" component={Login} />
-        <Stack.Screen name="TabNavigator" component={TabNavigator} />
-        <Stack.Screen name="CustomerCountDisplay" component={CustomerCountDisplay} initialParams={{ masterToken: 'userToken' }} />
-        <Stack.Screen name="Register" component={Register} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <NavigationContainer>
+        <Stack.Navigator
+          initialRouteName={isLoggedIn ? 'Home' : 'Splash'}
+          screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Splash" component={SplashScreen} />
+          <Stack.Screen name="Login" component={Login} />
+          <Stack.Screen name="TabNavigator" component={TabNavigator} />
+          <Stack.Screen name="CustomerCountDisplay" component={CustomerCountDisplay} initialParams={{ masterToken: 'userToken' }} />
+          <Stack.Screen name="Register" component={Register} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </GestureHandlerRootView>
   );
 };
 

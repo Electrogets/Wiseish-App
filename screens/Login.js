@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   Appearance,
   ActivityIndicator,
-  ScrollView
+  ScrollView,
+  Dimensions
 } from 'react-native';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
 import LinearGradient from 'react-native-linear-gradient';
@@ -26,7 +27,7 @@ import {
 import { useDispatch } from 'react-redux';
 import { actionCreators } from '../src/Store/masterToken/masterTokenAction';
 
-
+const { width, height } = Dimensions.get('window'); // Get the window dimensions
 
 const allowedLocations = [
   { latitude: 37.421998333333335, longitude: -122.084 }, //Android Emulator location Only for Testing
@@ -367,12 +368,12 @@ const Login = ({ navigation, route }) => {
     },
 
     MainHeading: {
-      fontSize: 30,
+      fontSize: width * 0.08,
       textAlign: 'center',
       fontWeight: '600',
       color: isDarkMode ? '#01f9fe' : '#000',
-      marginTop: 10,
-      marginBottom: 50,
+      marginTop: height * 0.01,
+      marginBottom: height * 0.04,
     },
     textInput: {
       // fontSize: 16,
@@ -399,34 +400,34 @@ const Login = ({ navigation, route }) => {
     },
     loginTypo: {
       fontWeight: '500',
-      fontSize: 18,
+      fontSize: width * 0.044,
       // textAlign: 'left',
       // left: '50%',
       color: isDarkMode ? '#fff' : '#000',
     },
     username: {
-      marginLeft: 10,
-      paddingTop: 30,
+      marginLeft: width * 0.03,
+      paddingTop: height * 0.04,
       fontWeight: '500',
-      fontSize: 14,
+      fontSize: width * 0.03,
       color: isDarkMode ? '#fff' : '#000',
       position: 'absolute',
     },
     password: {
-      top: 40,
-      marginLeft: 10,
+      top: height * 0.04,
+      marginLeft: width * 0.03,
       fontWeight: '500',
-      fontSize: 14, // Adjust the font size as needed
+      fontSize: width * 0.03, // Adjust the font size as needed
       color: isDarkMode ? '#fff' : '#000',
       position: 'absolute',
     },
     icon: {
       position: 'relative',
-      marginTop: 70,
+      marginTop: height * 0.07,
       marginBottom: 0,
       alignItems: 'center',
       flexDirection: 'row',
-      left: 10,
+      left: width * 0.01,
     },
     buttonContainer: {
       // borderRadius: 30,
@@ -450,7 +451,7 @@ const Login = ({ navigation, route }) => {
     buttonText: {
       color: isDarkMode ? '#fff' : 'white',
       // textAlign: 'center',
-      fontSize: 16,
+      // fontSize: width * 0.02,
       // fontWeight: 'bold',
       // color: 'white',
       textAlign: 'center',
@@ -460,7 +461,7 @@ const Login = ({ navigation, route }) => {
     },
     checkboxContainer: {
       flexDirection: 'row',
-      marginBottom: 20,
+      // marginBottom: height * 0.01,
       // marginTop: 30,
       // width: '50%',
       // marginLeft: 'auto',
@@ -497,17 +498,17 @@ const Login = ({ navigation, route }) => {
     successPopup: {
       position: 'absolute',
       top: '0%',
-      left: '43%',
+      left: wp('40%'),
       width: '60%',
       backgroundColor: isDarkMode ? '#222' : '#fff',
-      padding: 10,
+      padding: width * 0.021,
       borderRadius: 10,
       elevation: 5,
       flexDirection: 'row',
       alignItems: 'center',
     },
     successPopupText: {
-      fontSize: 15,
+      fontSize: width * 0.0385,
       fontWeight: 'bold',
       paddingLeft: 10,
       color: isDarkMode ? '#fff' : '#000',
@@ -515,10 +516,10 @@ const Login = ({ navigation, route }) => {
     invalidPopup: {
       position: 'absolute',
       top: '0%',
-      left: '45%',
+      left: wp('43%'),
       width: '60%',
       backgroundColor: isDarkMode ? '#222' : '#fff',
-      padding: 10,
+      padding: width * 0.021,
       borderRadius: 10,
       elevation: 5,
       flexDirection: 'row',
@@ -527,17 +528,17 @@ const Login = ({ navigation, route }) => {
 
 
     invalidPopupText: {
-      fontSize: 18,
+      fontSize: width * 0.0385,
       fontWeight: 'bold',
       color: isDarkMode ? '#fff' : '#000',
     },
 
     invalidPopupText: {
-      fontSize: 18,
-      top: 4,
-      right: -6,
+      fontSize: width * 0.043,
+      top: height * 0.007,
+      right: wp('-2%'),
       fontWeight: 'bold',
-      marginBottom: 10,
+      marginBottom: height * 0.009,
       color: isDarkMode ? '#fff' : '#000',
     },
     warningText: {

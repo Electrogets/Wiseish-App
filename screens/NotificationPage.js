@@ -12,9 +12,14 @@ import axios from 'axios';
 import { useSelector } from 'react-redux';
 import { ScrollView } from 'react-native-gesture-handler';
 import moment from 'moment';
+import {
+    widthPercentageToDP as wp,
+    heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
+const { width, height } = Dimensions.get('window'); // Get the window dimensions
 
 const NotificationPage = ({ isDarkMode }) => {
     const [notifications, setNotifications] = useState([]);
@@ -211,23 +216,24 @@ const styles = StyleSheet.create({
         backgroundColor: '#333',
     },
     icon: {
-        marginTop: 0,
-        left: 335,
+        marginTop: height * 0,
+        left: width - 75,
+        marginBottom: height * 0.02,
     },
     notificationCount: {
         position: 'absolute',
-        top: 8,
-        left: 345,
+        top: height * 0.01,
+        left: width - 65,
         backgroundColor: 'red',
         borderRadius: 15,
-        minWidth: 20,
+        // minWidth: 20,
         justifyContent: 'center',
         alignItems: 'center',
     },
     notificationCountText: {
         color: 'white',
-        fontSize: 12,
-        paddingHorizontal: 5,
+        fontSize: width * 0.032,
+        paddingHorizontal: width * 0.01,
     },
     darkNotificationCountText: {
         color: 'white',
@@ -246,10 +252,10 @@ const styles = StyleSheet.create({
     notificationItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 10,
+        marginBottom: height * 0.01,
         borderBottomWidth: 1,
         borderBottomColor: '#ccc',
-        padding: 10,
+        padding: width * 0.03,
         width: windowWidth - 40,
     },
     darkNotificationItem: {
@@ -265,10 +271,10 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     arrowIcon: {
-        marginLeft: 10,
+        marginLeft: width * 0.3,
     },
     notificationText: {
-        fontSize: 16,
+        fontSize: width * 0.04,
         color: '#000',
     },
     darkNotificationText: {
@@ -278,13 +284,13 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     scrollContent: {
-        paddingVertical: 10,
+        paddingVertical: height * 0.03,
     },
     closeButton: {
         position: 'absolute',
-        top: 5,
-        left: 15,
-        padding: 10,
+        top: height * 0.001,
+        left: width * 0.02,
+        padding: width * 0.03,
         borderRadius: 30,
         backgroundColor: 'rgba(0, 0, 0, 0.9)',
     },
