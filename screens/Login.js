@@ -356,7 +356,7 @@ const Login = ({ navigation, route }) => {
       // flex: 1,
       // justifyContent: 'center',
       // alignItems: 'center',
-      backgroundColor: isDarkMode ? '#084552' : 'white',
+      backgroundColor: isDarkMode ? 'black' : 'white',
       // height: hp('100%'),
       // width: wp('100%'),
     },
@@ -472,10 +472,12 @@ const Login = ({ navigation, route }) => {
       marginVertical: hp('1%'),
       width: '30%',
       alignItems: 'center',
+
     },
     checkbox: {
       // alignSelf: 'center',
-      borderColor: isDarkMode ? '#fff' : '#000',
+      // borderWidth: 1,
+      // borderColor: isDarkMode ? '#000' : '#fff',
     },
     label: {
       // marginLeft: -55,
@@ -677,7 +679,7 @@ const Login = ({ navigation, route }) => {
             fillColor={isDarkMode ? '#000' : '#000'}
             unfillColor={isDarkMode ? '#000' : '#fff'}
             iconStyle={{
-              // borderColor: isDarkMode ? '#000' : '#fff',
+              borderColor: isDarkMode ? '#000' : '#fff',
               borderRadius: 0,
               color: isDarkMode ? '#fff' : '#000',
             }}

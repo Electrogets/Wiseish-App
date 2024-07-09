@@ -6,10 +6,11 @@ import {
     TouchableOpacity,
     Dimensions,
     Modal,
+    Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import axios from 'axios';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { ScrollView } from 'react-native-gesture-handler';
 import moment from 'moment';
 import {
@@ -26,27 +27,9 @@ const NotificationPage = ({ isDarkMode }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
     const [expandedNotificationId, setExpandedNotificationId] = useState(null);
+    const [fetchError, setFetchError] = useState(null);
     const masterToken = useSelector(state => state?.tokenReducer?.accessToken);
-
-    const toggleNotificationExpand = notificationId => {
-        if (expandedNotificationId === notificationId) {
-            // If the clicked notification is already expanded, collapse it
-            setExpandedNotificationId(null);
-        } else {
-            // Otherwise, expand the new notification and mark it as read
-            setExpandedNotificationId(notificationId);
-            setNotifications(prevNotifications =>
-                prevNotifications.map(notification =>
-                    notification.id === notificationId
-                        ? { ...notification, read: true }
-                        : notification,
-                ),
-            );
-            if (!notifications.find(notification => notification.id === notificationId)?.read) {
-                setUnreadNotificationCount(prevCount => Math.max(0, prevCount - 1));
-            }
-        }
-    };
+    const dispatch = useDispatch();
 
     useEffect(() => {
         fetchNotifications();
@@ -69,31 +52,66 @@ const NotificationPage = ({ isDarkMode }) => {
                 },
             );
 
-            // Reverse the notifications array to display new data on top
-            setNotifications(response.data.reverse());
-            setUnreadNotificationCount(
-                response.data.filter(notification => !notification.read).length,
-            );
+            const updatedNotifications = response.data.reverse().map(notification => ({
+                ...notification,
+                seen: notification.status === 'Notification seen' ? true : false,
+            }));
+
+            setNotifications(updatedNotifications);
+            const unreadCount = updatedNotifications.filter(notification => !notification.seen).length;
+            setUnreadNotificationCount(unreadCount);
+            setFetchError(null);
         } catch (error) {
+            setFetchError(error.message || 'Error fetching notifications');
             console.error('Error fetching notifications:', error);
+            // If token expired or unauthorized, handle token refresh here
+            if (error.response && error.response.status === 401) {
+                // Example logic for token refresh
+                dispatch({ type: 'LOGOUT' }); // Clear token from Redux state
+                Alert.alert('Session Expired', 'Please log in again.');
+                // Navigate to login screen or handle re-authentication
+            }
+        }
+    };
+
+    const toggleNotificationExpand = async notificationId => {
+        if (expandedNotificationId === notificationId) {
+            // If the clicked notification is already expanded, collapse it
+            setExpandedNotificationId(null);
+        } else {
+            // Otherwise, expand the new notification and mark it as read if it's unseen
+            setExpandedNotificationId(notificationId);
+            const notification = notifications.find(notification => notification.id === notificationId);
+            if (notification && !notification.seen) {
+                await markNotificationAsSeen(notificationId); // Mark the notification as seen via the API
+                setNotifications(prevNotifications =>
+                    prevNotifications.map(notification =>
+                        notification.id === notificationId
+                            ? { ...notification, seen: true }
+                            : notification,
+                    ),
+                );
+                setUnreadNotificationCount(prevCount => Math.max(0, prevCount - 1));
+            }
+        }
+    };
+
+    const markNotificationAsSeen = async (notificationId) => {
+        try {
+            const response = await axios.post(`https://wiseish.in/api/reminders/${notificationId}/seen/`, {}, {
+                headers: {
+                    Authorization: `Bearer ${masterToken}`,
+                },
+            });
+            console.log('Notification marked as seen:', response.data);
+        } catch (error) {
+            console.error('Error marking notification as seen:', error);
+            throw error; // Propagate error for handling in fetchNotifications
         }
     };
 
     const toggleExpand = () => {
         setIsExpanded(!isExpanded);
-        if (!isExpanded) {
-            markAllNotificationsAsRead();
-        }
-    };
-
-    const markAllNotificationsAsRead = () => {
-        setNotifications(prevNotifications =>
-            prevNotifications.map(notification => ({
-                ...notification,
-                read: true,
-            })),
-        );
-        setUnreadNotificationCount(0);
     };
 
     return (
@@ -129,71 +147,74 @@ const NotificationPage = ({ isDarkMode }) => {
                         contentContainerStyle={styles.scrollContent}
                         style={styles.scrollContainer}
                     >
-                        {notifications.map(notification => (
-                            <TouchableOpacity
-                                key={notification.id}
-                                onPress={() => toggleNotificationExpand(notification.id)}
-                                style={[
-                                    styles.notificationItem,
-                                    notification.read && styles.readNotification,
-                                    isDarkMode && styles.darkNotificationItem,
-                                    !notification.read && styles.unreadNotification,
-                                ]}
-                            >
-                                <View style={styles.notificationContent}>
-                                    <Text
-                                        style={[
-                                            styles.notificationText,
-                                            isDarkMode && styles.darkNotificationText,
-                                        ]}
-                                    >
-                                        Customer Name: {notification.customer.name}
-                                    </Text>
-                                    {expandedNotificationId === notification.id && (
-                                        <>
-                                            <Text
-                                                style={[
-                                                    styles.notificationText,
-                                                    isDarkMode && styles.darkNotificationText,
-                                                ]}
-                                            >
-                                                Phone Number: {notification.customer.phone_number}
-                                            </Text>
-                                            <Text
-                                                style={[
-                                                    styles.notificationText,
-                                                    isDarkMode && styles.darkNotificationText,
-                                                ]}
-                                            >
-                                                Description: {notification.customer.description}
-                                            </Text>
-                                            <Text
-                                                style={[
-                                                    styles.notificationText,
-                                                    isDarkMode && styles.darkNotificationText,
-                                                ]}
-                                            >
-                                                Reminder Date: {moment(notification.reminder_datetime).format('Do MMMM YYYY')}
-                                            </Text>
-                                            <Text
-                                                style={[
-                                                    styles.notificationText,
-                                                    isDarkMode && styles.darkNotificationText,
-                                                ]}
-                                            >
-                                                Reminder Time: {moment(notification.reminder_datetime).format('h:mm a')}
-                                            </Text>
-                                        </>
-                                    )}
-                                </View>
-                                <Icon
-                                    name={expandedNotificationId === notification.id ? 'angle-up' : 'angle-down'}
-                                    size={20}
-                                    color={isDarkMode ? '#fff' : '#000'}
-                                    style={styles.arrowIcon}
-                                />
-                            </TouchableOpacity>
-                        ))}
+                        {fetchError ? (
+                            <Text style={styles.errorText}>{fetchError}</Text>
+                        ) : (
+                            notifications.map(notification => (
+                                <TouchableOpacity
+                                    key={notification.id}
+                                    onPress={() => toggleNotificationExpand(notification.id)}
+                                    style={[
+                                        styles.notificationItem,
+                                        notification.seen ? styles.readNotification : styles.unreadNotification,
+                                        isDarkMode && styles.darkNotificationItem,
+                                    ]}
+                                >
+                                    <View style={styles.notificationContent}>
+                                        <Text
+                                            style={[
+                                                styles.notificationText,
+                                                isDarkMode && styles.darkNotificationText,
+                                            ]}
+                                        >
+                                            Customer Name: {notification.customer.name}
+                                        </Text>
+                                        {expandedNotificationId === notification.id && (
+                                            <>
+                                                <Text
+                                                    style={[
+                                                        styles.notificationText,
+                                                        isDarkMode && styles.darkNotificationText,
+                                                    ]}
+                                                >
+                                                    Phone Number: {notification.customer.phone_number}
+                                                </Text>
+                                                <Text
+                                                    style={[
+                                                        styles.notificationText,
+                                                        isDarkMode && styles.darkNotificationText,
+                                                    ]}
+                                                >
+                                                    Description: {notification.customer.description}
+                                                </Text>
+                                                <Text
+                                                    style={[
+                                                        styles.notificationText,
+                                                        isDarkMode && styles.darkNotificationText,
+                                                    ]}
+                                                >
+                                                    Reminder Date: {moment(notification.reminder_datetime).format('Do MMMM YYYY')}
+                                                </Text>
+                                                <Text
+                                                    style={[
+                                                        styles.notificationText,
+                                                        isDarkMode && styles.darkNotificationText,
+                                                    ]}
+                                                >
+                                                    Reminder Time: {moment(notification.reminder_datetime).format('h:mm a')}
+                                                </Text>
+                                            </>
+                                        )}
+                                    </View>
+                                    <Icon
+                                        name={expandedNotificationId === notification.id ? 'angle-up' : 'angle-down'}
+                                        size={20}
+                                        color={isDarkMode ? '#fff' : '#000'}
+                                        style={styles.arrowIcon}
+                                    />
+                                </TouchableOpacity>
+                            ))
+                        )}
                     </ScrollView>
                     <TouchableOpacity onPress={toggleExpand} style={styles.closeButton}>
                         <Icon name="times" size={20} color={isDarkMode ? '#fff' : '#000'} />
@@ -216,14 +237,14 @@ const styles = StyleSheet.create({
         backgroundColor: '#333',
     },
     icon: {
-        marginTop: height * 0,
-        left: width - 75,
+        marginTop: height * (-0.09),
+        left: width - 70,
         marginBottom: height * 0.02,
     },
     notificationCount: {
         position: 'absolute',
-        top: height * 0.01,
-        left: width - 65,
+        top: height * (-0.08),
+        left: width - 57,
         backgroundColor: 'red',
         borderRadius: 15,
         // minWidth: 20,
@@ -293,6 +314,12 @@ const styles = StyleSheet.create({
         padding: width * 0.03,
         borderRadius: 30,
         backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    },
+    errorText: {
+        color: 'red',
+        fontSize: 18,
+        textAlign: 'center',
+        marginTop: 20,
     },
 });
 

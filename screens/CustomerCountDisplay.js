@@ -222,6 +222,7 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
         updateReminder = true;
         editedItem.reminder_id = response2.data.id;
       }
+      console.log("id", item.reminder_id)
 
       if (updateDescription || updateReminder) {
         const updatedData = [...clickedCardData];
@@ -420,7 +421,7 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
       // onPress={() => handleCardClick('registeredCustomers')}
       >
         <View style={[styles.card, styles.registeredCustomersCard]}>
-          <Text style={styles.cardTitle}>Total Customers</Text>
+          <Text style={styles.cardTitle}>Customers</Text>
           <Text style={styles.cardValuer}>{visitorCount + shopperCount}</Text>
         </View>
       </TouchableOpacity>
