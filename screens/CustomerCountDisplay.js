@@ -128,6 +128,7 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
           );
           return {
             ...item,
+            reminder_id: reminder ? reminder.id : null,
             reminder_datetime: reminder ? reminder.reminder_datetime : null,
           };
         });
@@ -192,6 +193,7 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
       let updateDescription = false;
       let updateReminder = false;
 
+      // Update feedback description if it has been edited
       if (editedFeedback[itemId]) {
         const response1 = await axios.put(
           `${baseUrl}/customers/${itemId}/update/`,
@@ -202,28 +204,39 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
         editedItem.description = response1.data.description;
       }
 
+      // Check if the reminder exists for the customer
+      const existingReminder = item.reminder_id;
+
+      // Create or update reminder if a new date has been selected
       if (selectedItemDateTime[itemId]) {
-        let reminderApiUrl = `${baseUrl}/reminders/`;
-
-        if (item.reminder_id) {
-          reminderApiUrl = `${baseUrl}/reminders/${item.reminder_id}/`;
+        if (existingReminder) {
+          // Update the existing reminder
+          const response2 = await axios.put(
+            `${baseUrl}/reminders/${existingReminder}/`,
+            {
+              reminder_datetime: formattedDate,
+            },
+            { headers: { Authorization: `Bearer ${masterToken}` } }
+          );
+          updateReminder = true;
+          editedItem.reminder_datetime = response2.data.reminder_datetime;
+        } else {
+          // Create a new reminder
+          const response2 = await axios.post(
+            `${baseUrl}/reminders/`,
+            {
+              customer_id: itemId,
+              reminder_datetime: formattedDate,
+            },
+            { headers: { Authorization: `Bearer ${masterToken}` } }
+          );
+          updateReminder = true;
+          editedItem.reminder_id = response2.data.id;
+          editedItem.reminder_datetime = response2.data.reminder_datetime;
         }
-
-        const method = item.reminder_id ? axios.put : axios.post;
-
-        const response2 = await method(
-          reminderApiUrl,
-          {
-            customer_id: itemId,
-            reminder_datetime: formattedDate,
-          },
-          { headers: { Authorization: `Bearer ${masterToken}` } }
-        );
-        updateReminder = true;
-        editedItem.reminder_id = response2.data.id;
       }
-      console.log("id", item.reminder_id)
 
+      // Update the clicked card data if any changes were made
       if (updateDescription || updateReminder) {
         const updatedData = [...clickedCardData];
         updatedData[editedItemIndex] = editedItem;
