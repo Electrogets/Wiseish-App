@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Appearance,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import axios from 'axios';
@@ -18,6 +19,10 @@ import { useSelector } from 'react-redux';
 import CustomerCountDisplay from './CustomerCountDisplay';
 import NotificationPage from './NotificationPage';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from 'react-native-responsive-screen';
 
 const Register = ({ refreshCustomerCount }) => {
   const masterToken = useSelector(state => state?.tokenReducer?.accessToken);
@@ -31,6 +36,7 @@ const Register = ({ refreshCustomerCount }) => {
   const [errorPopupVisible, setErrorPopupVisible] = useState(false);
   const [errorPopupMessage, setErrorPopupMessage] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(Appearance.getColorScheme() === 'dark');
+ 
   const [warningMessages, setWarningMessages] = useState({
     name: '',
     phone_number: '',
@@ -53,7 +59,7 @@ const Register = ({ refreshCustomerCount }) => {
       subscription.remove();
     };
   }, []);
-
+ 
   const isValidPhoneNumber = phoneNumber => {
     // Use a regular expression to check if the phone number is valid
     const phoneRegex = /^\+91[0-9]{10}$/;
@@ -176,8 +182,8 @@ const Register = ({ refreshCustomerCount }) => {
       textAlign: 'center',
       fontWeight: '600',
       color: '#000',
-      marginTop: 0,
-      marginBottom: 50,
+      marginTop: 30,
+      marginBottom: 30,
     },
     darkMainHeading: {
       color: '#fff',
@@ -244,10 +250,21 @@ const Register = ({ refreshCustomerCount }) => {
     },
     overlay: {
       ...StyleSheet.absoluteFill,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      backgroundColor: 'rgba(0, 0, 0, 0.0)',
+      color: isDarkMode ? ['#232526', '#414345'] : ['#6ACDDE', '#BB32DC'],
       justifyContent: 'center',
       alignItems: 'center',
     },
+    headerImage: {
+      width: wp('100%'),
+      height: hp('5%'),
+      position: 'relative',
+      resizeMode: 'contain',
+      left: wp("-31%"),
+      // top: hp('0%'),
+
+    },
+
   });
 
   useEffect(() => {
@@ -266,15 +283,21 @@ const Register = ({ refreshCustomerCount }) => {
     <ScrollView style={[styles.container, isDarkMode && styles.darkContainer]}>
       {overlayLoader && (
         <View style={styles.overlay}>
-          <ActivityIndicator size="large" color="#0000ff" />
+          <ActivityIndicator size="large" color="#BB32DC" />
         </View>
       )}
+      <Image
+        style={styles.headerImage}
+        // resizeMode="cover"
+        source={require('./assets/wiseishLogo.png')}
+      />
+      <NotificationPage isDarkMode={isDarkMode} />
 
       <CustomerCountDisplay
         isDarkMode={isDarkMode}
         handleOverlay={() => setOverlayLoader(true)}
       />
-      <NotificationPage isDarkMode={isDarkMode} />
+      {/* <NotificationPage isDarkMode={isDarkMode} /> */}
 
       <View>
         <Text style={[styles.mainHeading, isDarkMode && styles.darkMainHeading]}>

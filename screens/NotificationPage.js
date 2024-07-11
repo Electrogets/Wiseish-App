@@ -7,6 +7,7 @@ import {
     Dimensions,
     Modal,
     Alert,
+    Appearance,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import axios from 'axios';
@@ -20,9 +21,8 @@ import {
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
-const { width, height } = Dimensions.get('window'); // Get the window dimensions
 
-const NotificationPage = ({ isDarkMode }) => {
+const NotificationPage = () => {
     const [notifications, setNotifications] = useState([]);
     const [isExpanded, setIsExpanded] = useState(false);
     const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
@@ -30,6 +30,7 @@ const NotificationPage = ({ isDarkMode }) => {
     const [fetchError, setFetchError] = useState(null);
     const masterToken = useSelector(state => state?.tokenReducer?.accessToken);
     const dispatch = useDispatch();
+    const [isDarkMode, setIsDarkMode] = useState(Appearance.getColorScheme() === 'dark');
 
     useEffect(() => {
         fetchNotifications();
@@ -39,6 +40,14 @@ const NotificationPage = ({ isDarkMode }) => {
         }, 60000);
 
         return () => clearInterval(intervalId);
+    }, []);
+
+    useEffect(() => {
+        const subscription = Appearance.addChangeListener(({ colorScheme }) => {
+            setIsDarkMode(colorScheme === 'dark');
+        });
+
+        return () => subscription.remove();
     }, []);
 
     const fetchNotifications = async () => {
@@ -54,7 +63,7 @@ const NotificationPage = ({ isDarkMode }) => {
 
             const updatedNotifications = response.data.reverse().map(notification => ({
                 ...notification,
-                seen: notification.status === 'Notification seen' ? true : false,
+                seen: notification.status === 'Notification seen',
             }));
 
             setNotifications(updatedNotifications);
@@ -74,7 +83,31 @@ const NotificationPage = ({ isDarkMode }) => {
         }
     };
 
-    const toggleNotificationExpand = async notificationId => {
+    const handleSeen = async (notificationId) => {
+        try {
+            const response = await axios.post(
+                `https://wiseish.in/api/reminders/${notificationId}/seen/`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${masterToken}`,
+                    },
+                }
+            );
+            if (response.status === 200) {
+                setNotifications(prevNotifications =>
+                    prevNotifications.map(notification =>
+                        notification.id === notificationId ? { ...notification, seen: true } : notification
+                    )
+                );
+            }
+        } catch (error) {
+            console.error('Error marking notification as seen:', error);
+            // Handle error
+        }
+    };
+
+    const toggleNotificationExpand = async (notificationId) => {
         if (expandedNotificationId === notificationId) {
             // If the clicked notification is already expanded, collapse it
             setExpandedNotificationId(null);
@@ -83,30 +116,9 @@ const NotificationPage = ({ isDarkMode }) => {
             setExpandedNotificationId(notificationId);
             const notification = notifications.find(notification => notification.id === notificationId);
             if (notification && !notification.seen) {
-                await markNotificationAsSeen(notificationId); // Mark the notification as seen via the API
-                setNotifications(prevNotifications =>
-                    prevNotifications.map(notification =>
-                        notification.id === notificationId
-                            ? { ...notification, seen: true }
-                            : notification,
-                    ),
-                );
+                await handleSeen(notificationId); // Mark the notification as seen via the API
                 setUnreadNotificationCount(prevCount => Math.max(0, prevCount - 1));
             }
-        }
-    };
-
-    const markNotificationAsSeen = async (notificationId) => {
-        try {
-            const response = await axios.post(`https://wiseish.in/api/reminders/${notificationId}/seen/`, {}, {
-                headers: {
-                    Authorization: `Bearer ${masterToken}`,
-                },
-            });
-            console.log('Notification marked as seen:', response.data);
-        } catch (error) {
-            console.error('Error marking notification as seen:', error);
-            throw error; // Propagate error for handling in fetchNotifications
         }
     };
 
@@ -116,7 +128,7 @@ const NotificationPage = ({ isDarkMode }) => {
 
     return (
         <View style={[styles.container, isDarkMode && styles.darkContainer]}>
-            <TouchableOpacity onPress={toggleExpand}>
+            <TouchableOpacity onPress={toggleExpand} style={styles.iconContainer}>
                 <Icon
                     name="bell"
                     size={25}
@@ -148,7 +160,19 @@ const NotificationPage = ({ isDarkMode }) => {
                         style={styles.scrollContainer}
                     >
                         {fetchError ? (
-                            <Text style={styles.errorText}>{fetchError}</Text>
+                            <View style={styles.emptyContainer}>
+                                <Icon name="inbox" size={50} color={isDarkMode ? '#fff' : '#000'} />
+                                <Text style={[styles.emptyText, isDarkMode && styles.darkEmptyText]}>
+                                    {fetchError}
+                                </Text>
+                            </View>
+                        ) : notifications.length === 0 ? (
+                            <View style={styles.emptyContainer}>
+                                <Icon name="inbox" size={50} color={isDarkMode ? '#fff' : '#000'} />
+                                <Text style={[styles.emptyText, isDarkMode && styles.darkEmptyText]}>
+                                    No notifications available.
+                                </Text>
+                            </View>
                         ) : (
                             notifications.map(notification => (
                                 <TouchableOpacity
@@ -217,14 +241,13 @@ const NotificationPage = ({ isDarkMode }) => {
                         )}
                     </ScrollView>
                     <TouchableOpacity onPress={toggleExpand} style={styles.closeButton}>
-                        <Icon name="times" size={20} color={isDarkMode ? '#fff' : '#000'} />
+                        <Icon name="times" size={20} color={isDarkMode ? '#fff' : '#fff'} />
                     </TouchableOpacity>
                 </View>
             </Modal>
         </View>
     );
 };
-
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -236,25 +259,28 @@ const styles = StyleSheet.create({
     darkContainer: {
         backgroundColor: '#333',
     },
+    iconContainer: {
+        position: 'absolute',
+        top: hp('-6%'),
+        left: wp('81%'),
+        padding: 10,
+    },
     icon: {
-        marginTop: height * (-0.09),
-        left: width - 70,
-        marginBottom: height * 0.02,
+        marginBottom: windowHeight * 0.02,
     },
     notificationCount: {
         position: 'absolute',
-        top: height * (-0.08),
-        left: width - 57,
+        top: hp('2%'),
+        left: wp('6%'),
         backgroundColor: 'red',
         borderRadius: 15,
-        // minWidth: 20,
         justifyContent: 'center',
         alignItems: 'center',
     },
     notificationCountText: {
         color: 'white',
-        fontSize: width * 0.032,
-        paddingHorizontal: width * 0.01,
+        fontSize: wp('3.2%'),
+        paddingHorizontal: windowWidth * 0.01,
     },
     darkNotificationCountText: {
         color: 'white',
@@ -263,7 +289,7 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        backgroundColor: 'rgba(255, 255, 255, 1)',
         width: windowWidth,
         height: windowHeight,
     },
@@ -273,29 +299,35 @@ const styles = StyleSheet.create({
     notificationItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: height * 0.01,
+        marginBottom: windowHeight * 0.02,
         borderBottomWidth: 1,
+        borderRadius: 20,
         borderBottomColor: '#ccc',
-        padding: width * 0.03,
+        padding: windowWidth * 0.04,
         width: windowWidth - 40,
+        shadowColor: '#fff',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 10,
+        shadowRadius: 10,
+        elevation: 5, // For Android shadow
     },
     darkNotificationItem: {
         borderBottomColor: '#555',
     },
     unreadNotification: {
-        backgroundColor: 'black',
+        backgroundColor: 'grey',
     },
     readNotification: {
-        backgroundColor: 'grey',
+        backgroundColor: 'lightgrey',
     },
     notificationContent: {
         flex: 1,
     },
     arrowIcon: {
-        marginLeft: width * 0.3,
+        marginLeft: windowWidth * 0.3,
     },
     notificationText: {
-        fontSize: width * 0.04,
+        fontSize: windowWidth * 0.04,
         color: '#000',
     },
     darkNotificationText: {
@@ -305,21 +337,29 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     scrollContent: {
-        paddingVertical: height * 0.03,
+        paddingVertical: windowHeight * 0.03,
     },
     closeButton: {
         position: 'absolute',
-        top: height * 0.001,
-        left: width * 0.02,
-        padding: width * 0.03,
+        top: windowHeight * 0.001,
+        left: windowWidth * 0.02,
+        padding: windowWidth * 0.03,
         borderRadius: 30,
         backgroundColor: 'rgba(0, 0, 0, 0.9)',
     },
-    errorText: {
-        color: 'red',
-        fontSize: 18,
-        textAlign: 'center',
-        marginTop: 20,
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: windowWidth * 0.04,
+    },
+    emptyText: {
+        fontSize: windowWidth * 0.05,
+        marginTop: windowHeight * 0.02,
+        color: '#000',
+    },
+    darkEmptyText: {
+        color: '#fff',
     },
 });
 

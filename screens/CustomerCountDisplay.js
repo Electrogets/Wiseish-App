@@ -11,6 +11,7 @@ import {
   Dimensions,
   RefreshControl,
   ActivityIndicator,
+  Image
 } from 'react-native';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
@@ -164,14 +165,18 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
     setDateTimePickerVisibility(false);
   };
 
+  // const handleFeedbackEdit = (itemId, newFeedback) => {
+  //   if (!newFeedback.trim()) {
+  //     const updatedEditedFeedback = { ...editedFeedback };
+  //     delete updatedEditedFeedback[itemId];
+  //     setEditedFeedback(updatedEditedFeedback);
+  //   } else {
+  //     setEditedFeedback(prevState => ({ ...prevState, [itemId]: newFeedback }));
+  //   }
+  // };
+
   const handleFeedbackEdit = (itemId, newFeedback) => {
-    if (!newFeedback.trim()) {
-      const updatedEditedFeedback = { ...editedFeedback };
-      delete updatedEditedFeedback[itemId];
-      setEditedFeedback(updatedEditedFeedback);
-    } else {
-      setEditedFeedback(prevState => ({ ...prevState, [itemId]: newFeedback }));
-    }
+    setEditedFeedback(prevState => ({ ...prevState, [itemId]: newFeedback.trim() }));
   };
 
   const handleSaveAllDetails = async (itemId, item) => {
@@ -312,7 +317,7 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
             {!loading && `${listHeaderText}`}
           </Text>
           {loading ? (
-            <ActivityIndicator size="large" color="#0000ff" />
+            <ActivityIndicator size="large" color="#BB32DC" />
           ) : (
             <ScrollView
               contentContainerStyle={styles.scrollContentContainer}
@@ -358,7 +363,7 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
                         <TextInput
                           style={[styles.feedbackInput, isDarkMode && styles.darkInput]}
                           placeholder="Enter feedback"
-                          value={editedFeedback[item.id] || item.description}
+                          value={editedFeedback[item.id] !== undefined ? editedFeedback[item.id] : item.description}
                           onChangeText={text => handleFeedbackEdit(item.id, text)}
                           multiline
                         />
@@ -385,7 +390,7 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
                           <TouchableOpacity
                             style={styles.button}
                             onPress={() => handleSaveAllDetails(item.id, item)}>
-                            <LinearGradient colors={['#6ACDDE', '#BB32DC']} style={styles.gradient}>
+                            <LinearGradient colors={isDarkMode ? ['#232526', '#414345'] : ['#6ACDDE', '#BB32DC']} style={styles.gradient}>
                               <Text style={styles.buttonText}>Update</Text>
                             </LinearGradient>
                           </TouchableOpacity>
@@ -407,7 +412,7 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
           {!loading &&
             <View style={[styles.buttonContainer, styles.btnContainer]}>
               <TouchableOpacity style={styles.button} onPress={handleModalClose}>
-                <LinearGradient colors={['#6ACDDE', '#BB32DC']} style={styles.gradient}>
+                <LinearGradient colors={isDarkMode ? ['#232526', '#414345'] : ['#6ACDDE', '#BB32DC']} style={styles.gradient}>
                   <Text style={styles.buttonText}>Close</Text>
                 </LinearGradient>
               </TouchableOpacity>
@@ -429,32 +434,101 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-      // onPress={() => handleCardClick('registeredCustomers')}
-      >
-        <View style={[styles.card, styles.registeredCustomersCard]}>
-          <Text style={styles.cardTitle}>Customers</Text>
-          <Text style={styles.cardValuer}>{visitorCount + shopperCount}</Text>
-        </View>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => handleCardClick('visitors')}>
-        <View style={[styles.card, styles.visitorsCard]}>
-          <Text style={styles.cardTitle}>Visitors</Text>
-          <Text style={styles.cardValue}>{visitorCount}</Text>
-        </View>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => handleCardClick('shoppers')}>
-        <View style={[styles.card, styles.shoppersCard]}>
-          <Text style={styles.cardTitle}>Shoppers</Text>
-          <Text style={styles.cardValue}>{shopperCount}</Text>
-        </View>
-      </TouchableOpacity>
-      {renderDateTimePicker()}
-      {isCardClicked !== null && renderDataList()}
-    </View>
+
+    <View style={styles.cardContainer}>
+      {/* <View style={styles.gradient2 > */}
+      <LinearGradient
+        colors={isDarkMode ? ['#232526', '#414345'] : ['#6ACDDE', '#BB32DC', '#FFFFFF']}
+        style={styles.gradient2}>
+
+
+        <TouchableOpacity
+          style={[
+            styles.card,
+            { backgroundColor: isDarkMode ? '#333' : '#fff' },
+          ]}
+          onPress={() => handleCardClick('visitors')}
+        >
+          <Text style={[styles.cardText, { color: isDarkMode ? '#fff' : '#333' }]}>
+            Visitors
+          </Text>
+          <Text
+            style={[styles.countText, { color: isDarkMode ? '#fff' : '#333' }]}
+          >
+            {visitorCount}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.card,
+            { backgroundColor: isDarkMode ? '#333' : '#fff' },
+          ]}
+          onPress={() => handleCardClick('shoppers')}
+        >
+          <Text style={[styles.cardText, { color: isDarkMode ? '#fff' : '#333' }]}>
+            Shoppers
+          </Text>
+          <Text
+            style={[styles.countText, { color: isDarkMode ? '#fff' : '#333' }]}
+          >
+            {shopperCount}
+          </Text>
+        </TouchableOpacity>
+        {renderDateTimePicker()}
+        {isCardClicked !== null && renderDataList()}
+      </LinearGradient>
+    </View >
+    // </View >
+
   );
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//     <View style={styles.container}>
+//       <TouchableOpacity
+//       // onPress={() => handleCardClick('registeredCustomers')}
+//       >
+//         <View style={[styles.card, styles.registeredCustomersCard]}>
+//           <Text style={styles.cardTitle}>Customers</Text>
+//           <Text style={styles.cardValuer}>{visitorCount + shopperCount}</Text>
+//         </View>
+//       </TouchableOpacity>
+//       <TouchableOpacity onPress={() => handleCardClick('visitors')}>
+//         <View style={[styles.card, styles.visitorsCard]}>
+//           <Text style={styles.cardTitle}>Visitors</Text>
+//           <Text style={styles.cardValue}>{visitorCount}</Text>
+//         </View>
+//       </TouchableOpacity>
+//       <TouchableOpacity onPress={() => handleCardClick('shoppers')}>
+//         <View style={[styles.card, styles.shoppersCard]}>
+//           <Text style={styles.cardTitle}>Shoppers</Text>
+//           <Text style={styles.cardValue}>{shopperCount}</Text>
+//         </View>
+//       </TouchableOpacity>
+//       {renderDateTimePicker()}
+//       {isCardClicked !== null && renderDataList()}
+//     </View>
+//   );
+// };
 
 const styles = StyleSheet.create({
   container: {
@@ -466,16 +540,16 @@ const styles = StyleSheet.create({
     marginTop: height * (-0.00),
     marginLeft: wp('0%'),
   },
-  card: {
-    borderRadius: 10,
-    padding: width * 0.03,
-    alignItems: 'center',
-    elevation: 3,
-    width: "auto",
-    marginBottom: height * 0.0,
-    backgroundColor: '#f9f9f9', // Light mode background color
-    // marginHorizontal: width * 0.00,
-  },
+  // card: {
+  //   borderRadius: 10,
+  //   padding: width * 0.03,
+  //   alignItems: 'center',
+  //   elevation: 3,
+  //   width: "auto",
+  //   marginBottom: height * 0.0,
+  //   backgroundColor: '#f9f9f9', // Light mode background color
+  //   // marginHorizontal: width * 0.00,
+  // },
   cardTitle: {
     fontSize: width * 0.036,
     fontWeight: 'bold',
@@ -542,11 +616,22 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   gradient: {
-
     padding: width * 0.025,
     borderRadius: 5,
     alignItems: 'center',
     justifyContent: 'center',
+
+  },
+  gradient2: {
+    // padding: wp("0%"),
+    // paddingTop: width * 0.080,
+    // paddingTop: wp("10%"),
+    borderRadius: 5,
+    width: wp("93%"),
+    flexDirection: 'row',
+    borderRadius: 10,
+    // alignItems: 'center',
+    // justifyContent: 'center',
   },
   buttonText: {
     color: 'white',
@@ -589,6 +674,55 @@ const styles = StyleSheet.create({
   noUpdateMessage: {
     backgroundColor: 'red',
   },
+  headerImage: {
+    width: "6%",
+    height: "auto",
+    left: wp("60%"),
+    top: wp("-20%"),
+
+
+  },
+
+
+
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  cardContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  card: {
+    flex: 1,
+    margin: 10,
+    padding: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+    // left: wp("-7%"),
+  },
+  cardText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  countText: {
+    fontSize: 24,
+    marginTop: 10,
+  },
+
+
+
+
+
+
+
+
+
 });
 
 export default CustomerCountDisplay;
