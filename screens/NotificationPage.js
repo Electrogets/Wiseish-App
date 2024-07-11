@@ -94,6 +94,7 @@ const NotificationPage = () => {
                     },
                 }
             );
+            console.log("res", response.data);
             if (response.status === 200) {
                 setNotifications(prevNotifications =>
                     prevNotifications.map(notification =>
@@ -107,6 +108,7 @@ const NotificationPage = () => {
         }
     };
 
+    // console.log("notifications", notifications);
     const toggleNotificationExpand = async (notificationId) => {
         if (expandedNotificationId === notificationId) {
             // If the clicked notification is already expanded, collapse it
@@ -155,6 +157,12 @@ const NotificationPage = () => {
                         isDarkMode && styles.darkExpandedContainer,
                     ]}
                 >
+                    <View style={[styles.header, isDarkMode && styles.darkHeader]}>
+                        <Text style={[styles.headerText, isDarkMode && styles.darkHeaderText]}>Notifications</Text>
+                        <TouchableOpacity onPress={toggleExpand} style={styles.closeButton}>
+                            <Icon name="times" size={20} color={isDarkMode ? '#fff' : '#fff'} />
+                        </TouchableOpacity>
+                    </View>
                     <ScrollView
                         contentContainerStyle={styles.scrollContent}
                         style={styles.scrollContainer}
@@ -191,7 +199,9 @@ const NotificationPage = () => {
                                                 isDarkMode && styles.darkNotificationText,
                                             ]}
                                         >
-                                            Customer Name: {notification.customer.name}
+                                            <Text style={[styles.boldText, isDarkMode && styles.darkBoldText]}>
+                                                Customer Name:
+                                            </Text> {notification.customer.name}
                                         </Text>
                                         {expandedNotificationId === notification.id && (
                                             <>
@@ -240,14 +250,12 @@ const NotificationPage = () => {
                             ))
                         )}
                     </ScrollView>
-                    <TouchableOpacity onPress={toggleExpand} style={styles.closeButton}>
-                        <Icon name="times" size={20} color={isDarkMode ? '#fff' : '#fff'} />
-                    </TouchableOpacity>
                 </View>
             </Modal>
         </View>
     );
 };
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -279,11 +287,11 @@ const styles = StyleSheet.create({
     },
     notificationCountText: {
         color: 'white',
-        fontSize: wp('3.2%'),
-        paddingHorizontal: windowWidth * 0.01,
+        fontSize: 10,
+        padding: 5,
     },
     darkNotificationCountText: {
-        color: 'white',
+        color: '#fff',
     },
     expandedContainer: {
         flex: 1,
@@ -295,6 +303,29 @@ const styles = StyleSheet.create({
     },
     darkExpandedContainer: {
         backgroundColor: 'rgba(34, 34, 34, 1)',
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: windowWidth * 0.05,
+        paddingVertical: windowHeight * 0.01,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ccc',
+        width: '100%',
+        backgroundColor: '#f8f8f8',
+    },
+    darkHeader: {
+        backgroundColor: '#444',
+        borderBottomColor: '#555',
+    },
+    headerText: {
+        fontSize: windowWidth * 0.07,
+        color: '#000',
+
+    },
+    darkHeaderText: {
+        color: '#fff',
     },
     notificationItem: {
         flexDirection: 'row',
@@ -333,6 +364,12 @@ const styles = StyleSheet.create({
     darkNotificationText: {
         color: '#fff',
     },
+    boldText: {
+        fontWeight: 'bold',
+    },
+    darkBoldText: {
+        fontWeight: 'bold',
+    },
     scrollContainer: {
         flex: 1,
     },
@@ -340,9 +377,6 @@ const styles = StyleSheet.create({
         paddingVertical: windowHeight * 0.03,
     },
     closeButton: {
-        position: 'absolute',
-        top: windowHeight * 0.001,
-        left: windowWidth * 0.02,
         padding: windowWidth * 0.03,
         borderRadius: 30,
         backgroundColor: 'rgba(0, 0, 0, 0.9)',

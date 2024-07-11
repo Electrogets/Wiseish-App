@@ -246,7 +246,7 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
         const updatedData = [...clickedCardData];
         updatedData[editedItemIndex] = editedItem;
         setClickedCardData(updatedData);
-        console.log('Details saved successfully');
+        // console.log('Details saved successfully');
         setShowSuccessMessage(true);
         setShowNoUpdatesMessage(false);
 
@@ -256,7 +256,7 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
         }, 3000);
         setMessageTimeout(timeout);
       } else {
-        console.log('No updates made');
+        // console.log('No updates made');
         setShowNoUpdatesMessage(true);
         setShowSuccessMessage(false);
         const timeout = setTimeout(() => {
@@ -531,25 +531,7 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
 // };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'left',
-    gap: 3,
-    padding: width * 0.05,
-    marginTop: height * (-0.00),
-    marginLeft: wp('0%'),
-  },
-  // card: {
-  //   borderRadius: 10,
-  //   padding: width * 0.03,
-  //   alignItems: 'center',
-  //   elevation: 3,
-  //   width: "auto",
-  //   marginBottom: height * 0.0,
-  //   backgroundColor: '#f9f9f9', // Light mode background color
-  //   // marginHorizontal: width * 0.00,
-  // },
+
   cardTitle: {
     fontSize: width * 0.036,
     fontWeight: 'bold',
@@ -599,13 +581,9 @@ const styles = StyleSheet.create({
     marginLeft: width * 0.030,
     marginTop: height * -0.0099,
   },
-  // btnContainer: {
-  //   borderTopWidth: 3,
-  //   borderColor: "white",
-  //   width: '100%',
-  // },
+
   buttonContainer: {
-    // borderWidth: 1,
+
     width: '50%',
     marginLeft: 'auto',
     marginRight: 'auto',
@@ -623,15 +601,9 @@ const styles = StyleSheet.create({
 
   },
   gradient2: {
-    // padding: wp("0%"),
-    // paddingTop: width * 0.080,
-    // paddingTop: wp("10%"),
-    borderRadius: 5,
-    width: wp("93%"),
+    width: wp("92%"),
     flexDirection: 'row',
     borderRadius: 10,
-    // alignItems: 'center',
-    // justifyContent: 'center',
   },
   buttonText: {
     color: 'white',
@@ -679,32 +651,25 @@ const styles = StyleSheet.create({
     height: "auto",
     left: wp("60%"),
     top: wp("-20%"),
-
-
   },
-
-
-
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+
   },
   cardContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: '100%',
+    width: wp('100%'),
   },
   card: {
     flex: 1,
-    margin: 10,
-    padding: 20,
+    margin: wp('3%'),
+    padding: wp('5%'),
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 5,
-    // left: wp("-7%"),
   },
   cardText: {
     fontSize: 18,
@@ -714,15 +679,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     marginTop: 10,
   },
-
-
-
-
-
-
-
-
-
 });
 
 export default CustomerCountDisplay;
