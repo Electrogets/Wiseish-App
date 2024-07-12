@@ -189,55 +189,112 @@ const NotificationPage = () => {
                                     onPress={() => toggleNotificationExpand(notification.id)}
                                     style={[
                                         styles.notificationItem,
-                                        notification.seen ? styles.readNotification : styles.unreadNotification,
-                                        isDarkMode && styles.darkNotificationItem,
+                                        notification.seen ? (isDarkMode ? styles.darkReadNotification : styles.readNotification) : (isDarkMode ? styles.darkUnreadNotification : styles.unreadNotification),
                                     ]}
                                 >
                                     <View style={styles.notificationContent}>
-                                        <Text
-                                            style={[
-                                                styles.notificationText,
-                                                isDarkMode && styles.darkNotificationText,
-                                            ]}
-                                        >
-                                            <Text style={[styles.boldText, isDarkMode && styles.darkBoldText]}>
+                                        <View style={styles.notificationDetail}>
+                                            <Text
+                                                style={[
+                                                    styles.boldText,
+                                                    isDarkMode ? styles.darkBoldText : null,
+                                                    { fontSize: wp('4%') }, // Adjust font size here
+                                                ]}
+                                            >
                                                 Customer Name:
-                                            </Text> {notification.customer.name}
-                                        </Text>
+                                            </Text>
+                                            <Text
+                                                style={[
+                                                    styles.notificationText,
+                                                    isDarkMode ? styles.darkNotificationText : null,
+                                                    { fontSize: wp('5%'), marginLeft: 12 }, // Adjust font size and margin here
+                                                ]}
+                                            >
+                                                {notification.customer.name}
+                                            </Text>
+                                        </View>
                                         {expandedNotificationId === notification.id && (
                                             <>
-                                                <Text
-                                                    style={[
-                                                        styles.notificationText,
-                                                        isDarkMode && styles.darkNotificationText,
-                                                    ]}
-                                                >
-                                                    Phone Number: {notification.customer.phone_number}
-                                                </Text>
-                                                <Text
-                                                    style={[
-                                                        styles.notificationText,
-                                                        isDarkMode && styles.darkNotificationText,
-                                                    ]}
-                                                >
-                                                    Description: {notification.customer.description}
-                                                </Text>
-                                                <Text
-                                                    style={[
-                                                        styles.notificationText,
-                                                        isDarkMode && styles.darkNotificationText,
-                                                    ]}
-                                                >
-                                                    Reminder Date: {moment(notification.reminder_datetime).format('Do MMMM YYYY')}
-                                                </Text>
-                                                <Text
-                                                    style={[
-                                                        styles.notificationText,
-                                                        isDarkMode && styles.darkNotificationText,
-                                                    ]}
-                                                >
-                                                    Reminder Time: {moment(notification.reminder_datetime).format('h:mm a')}
-                                                </Text>
+                                                <View style={styles.notificationDetail}>
+                                                    <Text
+                                                        style={[
+                                                            styles.boldText,
+                                                            isDarkMode ? styles.darkBoldText : null,
+                                                            { fontSize: wp('4%') }, // Adjust font size here
+                                                        ]}
+                                                    >
+                                                        Phone Number:
+                                                    </Text>
+                                                    <Text
+                                                        style={[
+                                                            styles.notificationText,
+                                                            isDarkMode ? styles.darkNotificationText : null,
+                                                            { fontSize: wp('4%'), marginLeft: 12 }, // Adjust font size and margin here
+                                                        ]}
+                                                    >
+                                                        {notification.customer.phone_number}
+                                                    </Text>
+                                                </View>
+                                                <View style={styles.notificationDetail}>
+                                                    <Text
+                                                        style={[
+                                                            styles.boldText,
+                                                            isDarkMode ? styles.darkBoldText : null,
+                                                            { fontSize: wp('4%') }, // Adjust font size here
+                                                        ]}
+                                                    >
+                                                        Description:
+                                                    </Text>
+                                                    <Text
+                                                        style={[
+                                                            styles.notificationText,
+                                                            isDarkMode ? styles.darkNotificationText : null,
+                                                            { fontSize: wp('4%'), marginLeft: 12 }, // Adjust font size and margin here
+                                                        ]}
+                                                    >
+                                                        {notification.customer.description}
+                                                    </Text>
+                                                </View>
+                                                <View style={styles.notificationDetail}>
+                                                    <Text
+                                                        style={[
+                                                            styles.boldText,
+                                                            isDarkMode ? styles.darkBoldText : null,
+                                                            { fontSize: wp('4%') }, // Adjust font size here
+                                                        ]}
+                                                    >
+                                                        Reminder Date:
+                                                    </Text>
+                                                    <Text
+                                                        style={[
+                                                            styles.notificationText,
+                                                            isDarkMode ? styles.darkNotificationText : null,
+                                                            { fontSize: wp('4%'), marginLeft: 12 }, // Adjust font size and margin here
+                                                        ]}
+                                                    >
+                                                        {moment(notification.reminder_datetime).format('Do MMMM YYYY')}
+                                                    </Text>
+                                                </View>
+                                                <View style={styles.notificationDetail}>
+                                                    <Text
+                                                        style={[
+                                                            styles.boldText,
+                                                            isDarkMode ? styles.darkBoldText : null,
+                                                            { fontSize: wp('4%') }, // Adjust font size here
+                                                        ]}
+                                                    >
+                                                        Reminder Time:
+                                                    </Text>
+                                                    <Text
+                                                        style={[
+                                                            styles.notificationText,
+                                                            isDarkMode ? styles.darkNotificationText : null,
+                                                            { fontSize: wp('4%'), marginLeft: 12 }, // Adjust font size and margin here
+                                                        ]}
+                                                    >
+                                                        {moment(notification.reminder_datetime).format('h:mm a')}
+                                                    </Text>
+                                                </View>
                                             </>
                                         )}
                                     </View>
@@ -248,12 +305,13 @@ const NotificationPage = () => {
                                         style={styles.arrowIcon}
                                     />
                                 </TouchableOpacity>
+
                             ))
                         )}
                     </ScrollView>
                 </View>
-            </Modal>
-        </View>
+            </Modal >
+        </View >
     );
 };
 
@@ -281,15 +339,16 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: hp('2%'),
         left: wp('6%'),
+        width: wp("5%"),
         backgroundColor: 'red',
-        borderRadius: 15,
+        borderRadius: 10,
         justifyContent: 'center',
         alignItems: 'center',
     },
     notificationCountText: {
         color: 'white',
-        fontSize: 10,
-        padding: 5,
+        fontSize: 12,
+        padding: 4,
     },
     darkNotificationCountText: {
         color: '#fff',
@@ -331,37 +390,43 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: windowHeight * 0.02,
-        top: windowHeight * 0.03,
-        borderBottomWidth: 1,
-        borderRadius: 20,
-        borderBottomColor: '#ccc',
         padding: windowWidth * 0.04,
         width: windowWidth - 40,
-        shadowColor: '#fff',
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 10,
-        shadowRadius: 10,
-        elevation: 5, // For Android shadow
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        backgroundColor: '#fff',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 2,
     },
     darkNotificationItem: {
-        borderBottomColor: '#555',
+        borderColor: '#555',
+        backgroundColor: '#444',
     },
     unreadNotification: {
-        backgroundColor: 'grey',
+        backgroundColor: '#e0f7fa',
+    },
+    darkUnreadNotification: {
+        backgroundColor: '#1a1a1a',
     },
     readNotification: {
-        backgroundColor: 'lightgrey',
+        backgroundColor: '#cfd8dc',
+    },
+    darkReadNotification: {
+        backgroundColor: '#333',
     },
     notificationContent: {
         flex: 1,
     },
     arrowIcon: {
-        marginLeft: windowWidth * 0.3,
+        marginLeft: windowWidth * 0.03,
     },
     notificationText: {
         fontSize: windowWidth * 0.04,
         color: '#000',
-        textAlign: 'center',
     },
     darkNotificationText: {
         color: '#fff',

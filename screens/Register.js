@@ -36,7 +36,7 @@ const Register = ({ refreshCustomerCount }) => {
   const [errorPopupVisible, setErrorPopupVisible] = useState(false);
   const [errorPopupMessage, setErrorPopupMessage] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(Appearance.getColorScheme() === 'dark');
- 
+
   const [warningMessages, setWarningMessages] = useState({
     name: '',
     phone_number: '',
@@ -59,11 +59,23 @@ const Register = ({ refreshCustomerCount }) => {
       subscription.remove();
     };
   }, []);
- 
+
   const isValidPhoneNumber = phoneNumber => {
     // Use a regular expression to check if the phone number is valid
-    const phoneRegex = /^\+91[0-9]{10}$/;
+    const phoneRegex = /^\+91\d{10}$/;
     return phoneRegex.test(phoneNumber);
+  };
+
+  const isValidEmail = email => {
+    // Use a regular expression to check if the email is valid
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const isValidName = name => {
+    // Use a regular expression to check if the name contains only alphabets and spaces
+    const nameRegex = /^[A-Za-z\s]+$/;
+    return nameRegex.test(name);
   };
 
   const handleOverlay = () => {
@@ -89,12 +101,28 @@ const Register = ({ refreshCustomerCount }) => {
     try {
       setLoading(true);
 
-      if (!name || !isValidPhoneNumber(phone_number) || !email || !visit_type || !description) {
+      if (!name || !isValidPhoneNumber(phone_number) || !email || !visit_type || !description || !isValidEmail(email) || !isValidName(name)) {
         if (!isValidPhoneNumber(phone_number)) {
           // Set warning message for phone number
           setWarningMessages(prevState => ({
             ...prevState,
             phone_number: 'Please enter a valid 10-digit phone number.',
+          }));
+        }
+
+        if (!isValidEmail(email)) {
+          // Set warning message for email
+          setWarningMessages(prevState => ({
+            ...prevState,
+            email: 'Please enter a valid email address.',
+          }));
+        }
+
+        if (!isValidName(name)) {
+          // Set warning message for name
+          setWarningMessages(prevState => ({
+            ...prevState,
+            name: 'Name should contain only alphabets and spaces.',
           }));
         }
 
