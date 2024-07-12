@@ -63,7 +63,7 @@ const NotificationPage = () => {
 
             const updatedNotifications = response.data.reverse().map(notification => ({
                 ...notification,
-                seen: notification.status === 'Notification seen',
+                seen: notification.salesperson_notification_seen,
             }));
 
             setNotifications(updatedNotifications);
@@ -94,13 +94,13 @@ const NotificationPage = () => {
                     },
                 }
             );
-            console.log("res", response.data);
             if (response.status === 200) {
                 setNotifications(prevNotifications =>
                     prevNotifications.map(notification =>
                         notification.id === notificationId ? { ...notification, seen: true } : notification
                     )
                 );
+                setUnreadNotificationCount(prevCount => Math.max(0, prevCount - 1));
             }
         } catch (error) {
             console.error('Error marking notification as seen:', error);
@@ -108,7 +108,6 @@ const NotificationPage = () => {
         }
     };
 
-    // console.log("notifications", notifications);
     const toggleNotificationExpand = async (notificationId) => {
         if (expandedNotificationId === notificationId) {
             // If the clicked notification is already expanded, collapse it
@@ -119,12 +118,14 @@ const NotificationPage = () => {
             const notification = notifications.find(notification => notification.id === notificationId);
             if (notification && !notification.seen) {
                 await handleSeen(notificationId); // Mark the notification as seen via the API
-                setUnreadNotificationCount(prevCount => Math.max(0, prevCount - 1));
             }
         }
     };
 
     const toggleExpand = () => {
+        if (isExpanded) {
+            setExpandedNotificationId(null); // Reset the expanded notification ID when closing the modal
+        }
         setIsExpanded(!isExpanded);
     };
 
@@ -309,7 +310,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: windowWidth * 0.05,
-        paddingVertical: windowHeight * 0.01,
+        paddingVertical: windowHeight * 0.02,
         borderBottomWidth: 1,
         borderBottomColor: '#ccc',
         width: '100%',
@@ -320,9 +321,8 @@ const styles = StyleSheet.create({
         borderBottomColor: '#555',
     },
     headerText: {
-        fontSize: windowWidth * 0.07,
+        fontSize: windowWidth * 0.05,
         color: '#000',
-
     },
     darkHeaderText: {
         color: '#fff',
@@ -331,6 +331,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: windowHeight * 0.02,
+        top: windowHeight * 0.03,
         borderBottomWidth: 1,
         borderRadius: 20,
         borderBottomColor: '#ccc',
@@ -360,6 +361,7 @@ const styles = StyleSheet.create({
     notificationText: {
         fontSize: windowWidth * 0.04,
         color: '#000',
+        textAlign: 'center',
     },
     darkNotificationText: {
         color: '#fff',
