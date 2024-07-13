@@ -361,6 +361,7 @@ const Register = ({ refreshCustomerCount }) => {
             placeholder="Type mobile number"
             placeholderTextColor={isDarkMode ? '#999' : '#727272'}
             value={phone_number}
+            maxLength={13}
             onChangeText={text => {
               if (text.startsWith('+91')) {
                 setPhoneNumber(text.substring(0, 13));
