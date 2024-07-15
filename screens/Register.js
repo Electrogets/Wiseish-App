@@ -45,7 +45,7 @@ const Register = ({ refreshCustomerCount }) => {
     description: '',
   });
   const [overlayLoader, setOverlayLoader] = useState(false);
-
+  const [refresh, setRefresh] = useState(false);
   // Use Effect to subscribe to appearance changes
   useEffect(() => {
     const appearanceChangeHandler = ({ colorScheme }) => {
@@ -92,9 +92,10 @@ const Register = ({ refreshCustomerCount }) => {
 
     // Trigger a refresh
     setRefresh(prevRefresh => !prevRefresh);
+    // refreshCustomerCount();
 
     // Navigate to the Register screen
-    // navigation.navigate('TabNavigator');
+    // navigation.navigate('Register');
   };
 
   const handleRegister = async () => {
