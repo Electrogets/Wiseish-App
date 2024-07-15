@@ -671,28 +671,18 @@ const Login = ({ navigation, route }) => {
 
         <View style={styles.checkboxContainer}>
           <BouncyCheckbox
-            boxType={'square'}
-            style={{
-              borderRadius: 0,
-            }}
+            boxType="square"
             size={15}
             fillColor={isDarkMode ? '#000' : '#000'}
-            unfillColor={isDarkMode ? '#000' : '#fff'}
+            unfillColor={isDarkMode ? '#fff' : '#fff'}
             iconStyle={{
-              borderColor: isDarkMode ? '#000' : '#fff',
+              borderColor: isDarkMode ? '#fff' : '#000', // Adjusted border color for visibility
               borderRadius: 0,
-              color: isDarkMode ? '#fff' : '#000',
             }}
             innerIconStyle={{
               borderWidth: 2,
               borderRadius: 0,
-              color: isDarkMode
-                ? rememberMe
-                  ? '#000'
-                  : '#fff'
-                : rememberMe
-                  ? '#fff'
-                  : '#000',
+              borderColor: isDarkMode ? '#fff' : '#000', // Adjusted border color for visibility
             }}
             isChecked={rememberMe}
             onPress={isChecked => setRememberMe(isChecked)}
