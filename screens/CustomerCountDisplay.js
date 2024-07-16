@@ -423,7 +423,7 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
           <View style={[styles.messageContainer, styles.successMessage]}>
             <Text style={styles.messageText}>Details Updated successfully!</Text>
           </View>
-        )}
+        )} 
         {showNoUpdatesMessage && (
           <View style={[styles.messageContainer, styles.noUpdateMessage]}>
             <Text style={styles.messageText}>No updates Made</Text>
@@ -452,6 +452,7 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
           <Text style={[styles.cardText, { color: isDarkMode ? '#fff' : '#333' }]}>
             Visitors
           </Text>
+          {/* <Icon name="eye" size={hp('5%')} color="#fff" /> */}
           <Text
             style={[styles.countText, { color: isDarkMode ? '#fff' : '#333' }]}
           >
@@ -465,9 +466,11 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
           ]}
           onPress={() => handleCardClick('shoppers')}
         >
+
           <Text style={[styles.cardText, { color: isDarkMode ? '#fff' : '#333' }]}>
             Shoppers
           </Text>
+          {/* <Icon name="shopping-cart" size={hp('5%')} color="#fff" /> */}
           <Text
             style={[styles.countText, { color: isDarkMode ? '#fff' : '#333' }]}
           >
@@ -562,20 +565,21 @@ const styles = StyleSheet.create({
   },
   listItem: {
     width: width - 40, // Adjust the width to be the screen width minus padding
-    marginBottom: 20,
-    borderWidth: 1,
+    marginBottom: wp('10%'),
+    borderWidth: wp('0.5%'),
     borderColor: 'black',
     borderRadius: 5,
     padding: 20,
   },
   listItemText: {
-    fontSize: 18,
+    fontSize: wp('4.5%'),
     marginBottom: 10,
     color: 'black', // Text color for light mode
   },
   dateTimeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+
   },
   clockIcon: {
     marginLeft: width * 0.030,
