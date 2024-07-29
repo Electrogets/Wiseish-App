@@ -382,6 +382,7 @@ const styles = StyleSheet.create({
     headerText: {
         fontSize: windowWidth * 0.05,
         color: '#000',
+
     },
     darkHeaderText: {
         color: '#fff',
@@ -407,16 +408,16 @@ const styles = StyleSheet.create({
         backgroundColor: '#444',
     },
     unreadNotification: {
-        backgroundColor: '#e0f7fa',
+        backgroundColor: '#FFE4E1',
     },
     darkUnreadNotification: {
-        backgroundColor: '#1a1a1a',
+        backgroundColor: '#663399',
     },
     readNotification: {
-        backgroundColor: '#cfd8dc',
+        backgroundColor: '#E8E8E8',
     },
     darkReadNotification: {
-        backgroundColor: '#333',
+        backgroundColor: '#444444',
     },
     notificationContent: {
         flex: 1,
@@ -433,9 +434,11 @@ const styles = StyleSheet.create({
     },
     boldText: {
         fontWeight: 'bold',
+        color: 'grey',
     },
     darkBoldText: {
         fontWeight: 'bold',
+        color: 'darkgrey',
     },
     scrollContainer: {
         flex: 1,
