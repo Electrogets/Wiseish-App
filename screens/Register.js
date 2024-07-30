@@ -24,7 +24,7 @@ import {
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
 
-const Register = ({ refreshCustomerCount }) => {
+const Register = ({ }) => {
   const masterToken = useSelector(state => state?.tokenReducer?.accessToken);
   const [name, setName] = useState('');
   const [phone_number, setPhoneNumber] = useState('');
@@ -36,6 +36,7 @@ const Register = ({ refreshCustomerCount }) => {
   const [errorPopupVisible, setErrorPopupVisible] = useState(false);
   const [errorPopupMessage, setErrorPopupMessage] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(Appearance.getColorScheme() === 'dark');
+  const [trigger, setTrigger] = useState(false);
 
   const [warningMessages, setWarningMessages] = useState({
     name: '',
@@ -89,13 +90,9 @@ const Register = ({ refreshCustomerCount }) => {
     setEmail('');
     setVisit_type('');
     setDescription('');
-
-    // Trigger a refresh
     setRefresh(prevRefresh => !prevRefresh);
-    // refreshCustomerCount();
+    setTrigger(prevTrigger => !prevTrigger);
 
-    // Navigate to the Register screen
-    // navigation.navigate('Register');
   };
 
   const handleRegister = async () => {
@@ -157,6 +154,8 @@ const Register = ({ refreshCustomerCount }) => {
         setTimeout(() => {
           setSuccessPopupVisible(false);
           resetFormAndNavigate();
+          
+
         }, 2000);
       } else {
         console.log(
@@ -324,6 +323,7 @@ const Register = ({ refreshCustomerCount }) => {
 
       <CustomerCountDisplay
         isDarkMode={isDarkMode}
+        trigger={trigger}
         handleOverlay={() => setOverlayLoader(true)}
       />
       {/* <NotificationPage isDarkMode={isDarkMode} /> */}

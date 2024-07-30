@@ -27,7 +27,7 @@ import {
 
 const { width, height } = Dimensions.get('window'); // Get the window dimensions
 
-const CustomerCountDisplay = ({ handleOverlay }) => {
+const CustomerCountDisplay = ({ handleOverlay, trigger }) => {
   const [isCardClicked, setIsCardClicked] = useState(null);
   const [clickedCardData, setClickedCardData] = useState([]);
   const [visitorCount, setVisitorCount] = useState(0);
@@ -52,6 +52,7 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
       const shoppersResponse = await axios.get(`${baseUrl}/customers/shoppers/`, {
         headers: { Authorization: `Bearer ${masterToken}` },
       });
+
       setVisitorCount(visitorsResponse.data.length);
       setShopperCount(shoppersResponse.data.length);
     } catch (error) {
@@ -64,9 +65,14 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
     }
   };
 
+
   useEffect(() => {
     fetchVisitorAndShopperCounts();
-  }, []);
+  }, [trigger]);
+
+
+
+
 
   useEffect(() => {
     const subscription = Appearance.addChangeListener(({ colorScheme }) => {
@@ -165,15 +171,6 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
     setDateTimePickerVisibility(false);
   };
 
-  // const handleFeedbackEdit = (itemId, newFeedback) => {
-  //   if (!newFeedback.trim()) {
-  //     const updatedEditedFeedback = { ...editedFeedback };
-  //     delete updatedEditedFeedback[itemId];
-  //     setEditedFeedback(updatedEditedFeedback);
-  //   } else {
-  //     setEditedFeedback(prevState => ({ ...prevState, [itemId]: newFeedback }));
-  //   }
-  // };
 
   const handleFeedbackEdit = (itemId, newFeedback) => {
     setEditedFeedback(prevState => ({ ...prevState, [itemId]: newFeedback.trim() }));
@@ -423,7 +420,7 @@ const CustomerCountDisplay = ({ handleOverlay }) => {
           <View style={[styles.messageContainer, styles.successMessage]}>
             <Text style={styles.messageText}>Details Updated successfully!</Text>
           </View>
-        )} 
+        )}
         {showNoUpdatesMessage && (
           <View style={[styles.messageContainer, styles.noUpdateMessage]}>
             <Text style={styles.messageText}>No updates Made</Text>
