@@ -47,20 +47,21 @@ const allowedLocations = [
 
   // office guys coordinates
   { latitude: 28.684387, longitude: 77.522865 }, //{Tushar}
-  { latitude: 28.626338, longitude: 77.337486 }, //{shivam}
+  // { latitude: 28.626338, longitude: 77.337486 }, //{shivam}
   { latitude: 28.575842, longitude: 77.323223 }, //{Sana}
   { latitude: 28.545607, longitude: 77.359821 }, //{rudrani and Gargi}
   { latitude: 28.636951, longitude: 77.103187 }, //{Harsimran}
   { latitude: 28.725734, longitude: 77.173649 }, //{chandan}
   { latitude: 28.656507, longitude: 77.166485 }, //{Ankush}
   { latitude: 28.691704, longitude: 77.286319 }, //{Varsha}
-  { latitude: 28.602478, longitude: 77.37874 }, //{Manish}
+  // { latitude: 28.602478, longitude: 77.37874 }, //{Manish}
   { latitude: 28.593867, longitude: 77.307009 }, //{Ghanendra}
   { latitude: 28.397180, longitude: 77.856357 }, //{ghanendra Home}
   { latitude: 28.055898, longitude: 77.974233 }, //{Ghanendra Home 2}
   { latitude: 28.585524, longitude: 77.072651 }, //{gaurav}
   { latitude: 28.711173, longitude: 77.046527 }, //{Govind}
   { latitude: 28.616179, longitude: 77.337819 }, //{Rukshar}
+  { latitude: 28.590888, longitude: 77.309497 }, //{manish&shivam}
 
   // Add more allowed locations as needed
 ];

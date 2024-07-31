@@ -18,6 +18,8 @@ import {
     widthPercentageToDP as wp,
     heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import { showNotification } from './NotificationHandler'; // Adjust the path as necessary
+
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
@@ -70,6 +72,17 @@ const NotificationPage = () => {
             const unreadCount = updatedNotifications.filter(notification => !notification.seen).length;
             setUnreadNotificationCount(unreadCount);
             setFetchError(null);
+
+            // Show a local notification for new unread notifications
+            const newUnreadNotifications = updatedNotifications.filter(notification => !notification.seen);
+            if (newUnreadNotifications.length > 0) {
+                const latestNotification = newUnreadNotifications[0];
+                showNotification(
+                    'New Reminder',
+                    `${latestNotification.customer.name}: ${latestNotification.customer.description}`
+                );
+            }
+
         } catch (error) {
             setFetchError(error.message || 'Error fetching notifications');
             console.error('Error fetching notifications:', error);

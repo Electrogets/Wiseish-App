@@ -18,11 +18,14 @@ import SuccessPopup from './SuccessPopup';
 import { useSelector } from 'react-redux';
 import CustomerCountDisplay from './CustomerCountDisplay';
 import NotificationPage from './NotificationPage';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+// import { createChannel } from './NotificationHandler'; // Adjust path if necessary
+
+
+// createChannel();
 
 const Register = ({ }) => {
   const masterToken = useSelector(state => state?.tokenReducer?.accessToken);
@@ -154,7 +157,7 @@ const Register = ({ }) => {
         setTimeout(() => {
           setSuccessPopupVisible(false);
           resetFormAndNavigate();
-          
+
 
         }, 2000);
       } else {

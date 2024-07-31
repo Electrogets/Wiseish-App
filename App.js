@@ -40,6 +40,8 @@ const MainNavigator = () => {
 };
 
 const App = () => {
+
+
   return (
     <Provider store={store}>
       <AuthProvider>
