@@ -18,7 +18,9 @@ import {
     widthPercentageToDP as wp,
     heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import { showNotification } from './NotificationHandler'; // Adjust the path as necessary
+import { showNotification, requestNotificationPermission, checkNotificationPermission } from './NotificationHandler'; // Adjust the path as necessary
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 
 const windowWidth = Dimensions.get('window').width;
@@ -36,6 +38,7 @@ const NotificationPage = () => {
 
     useEffect(() => {
         fetchNotifications();
+        checkAndRequestNotificationPermission();
 
         const intervalId = setInterval(() => {
             fetchNotifications();
@@ -44,6 +47,19 @@ const NotificationPage = () => {
         return () => clearInterval(intervalId);
     }, []);
 
+
+    const checkAndRequestNotificationPermission = async () => {
+        const hasPermission = await checkNotificationPermission();
+        if (!hasPermission) {
+            const granted = await requestNotificationPermission();
+            if (!granted) {
+                Alert.alert('Permission Denied', 'Please enable notifications from the app settings.');
+            }
+        }
+    };
+
+
+
     useEffect(() => {
         const subscription = Appearance.addChangeListener(({ colorScheme }) => {
             setIsDarkMode(colorScheme === 'dark');
@@ -51,6 +67,35 @@ const NotificationPage = () => {
 
         return () => subscription.remove();
     }, []);
+
+
+
+    const NOTIFICATION_STORAGE_KEY = 'shownNotificationIds';
+
+    const showUnreadNotificationOnce = async (notifications) => {
+        try {
+            const shownNotificationIds = JSON.parse(await AsyncStorage.getItem(NOTIFICATION_STORAGE_KEY)) || [];
+            const newUnreadNotifications = notifications.filter(notification => !notification.seen);
+
+            if (newUnreadNotifications.length > 0) {
+                const latestNotification = newUnreadNotifications[0];
+
+                if (!shownNotificationIds.includes(latestNotification.id)) {
+                    showNotification(
+                        'New Reminder',
+                        `${latestNotification.customer.name}: ${latestNotification.customer.description}`
+                    );
+
+                    // Add the notification ID to the list of shown notifications
+                    shownNotificationIds.push(latestNotification.id);
+                    await AsyncStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(shownNotificationIds));
+                }
+            }
+        } catch (error) {
+            console.error('Error showing unread notification:', error);
+        }
+    };
+
 
     const fetchNotifications = async () => {
         try {
@@ -72,6 +117,9 @@ const NotificationPage = () => {
             const unreadCount = updatedNotifications.filter(notification => !notification.seen).length;
             setUnreadNotificationCount(unreadCount);
             setFetchError(null);
+
+            // Show a local notification for new unread notifications
+            await showUnreadNotificationOnce(updatedNotifications);
 
             // Show a local notification for new unread notifications
             const newUnreadNotifications = updatedNotifications.filter(notification => !notification.seen);
