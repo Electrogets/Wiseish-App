@@ -30,6 +30,22 @@ export const showNotification = (title, message) => {
     });
 };
 
+// Function to update notification
+export const updateNotification = (id, title, message) => {
+    PushNotification.localNotification({
+        channelId: 'local-channel',
+        title: title,
+        message: message,
+        playSound: true,
+        soundName: 'default',
+        importance: 'high',
+        vibrate: true,
+        // onlyAlertOnce: false,
+        // repeatTime: 1,
+    });
+};
+
+
 
 
 export const requestNotificationPermission = async () => {

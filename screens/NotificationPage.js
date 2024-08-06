@@ -95,7 +95,7 @@ const NotificationPage = () => {
                 } else if (existingNotification.hash !== latestNotificationHash) {
                     updateNotification(
                         latestNotification.id,
-                        'Reminder Updated',
+                        'New Reminder',
                         `${latestNotification.customer.name}: ${latestNotification.customer.description}`
                     );
 
