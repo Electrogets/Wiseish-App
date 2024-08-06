@@ -45,6 +45,7 @@ const CustomerCountDisplay = ({ handleOverlay, trigger }) => {
 
   const fetchVisitorAndShopperCounts = async () => {
     handleOverlay();
+
     try {
       const visitorsResponse = await axios.get(`${baseUrl}/customers/visitors/`, {
         headers: { Authorization: `Bearer ${masterToken}` },
@@ -69,9 +70,6 @@ const CustomerCountDisplay = ({ handleOverlay, trigger }) => {
   useEffect(() => {
     fetchVisitorAndShopperCounts();
   }, [trigger]);
-
-
-
 
 
   useEffect(() => {
@@ -108,8 +106,9 @@ const CustomerCountDisplay = ({ handleOverlay, trigger }) => {
   };
 
   const handleCardClick = async cardType => {
-    let apiUrl = '';
     setLoading(true);
+    let apiUrl = '';
+
 
     if (cardType === 'visitors') {
       apiUrl = `${baseUrl}/customers/visitors/`;
@@ -117,6 +116,7 @@ const CustomerCountDisplay = ({ handleOverlay, trigger }) => {
       apiUrl = `${baseUrl}/customers/shoppers/`;
     } else {
       console.error('Invalid card type');
+      setLoading(false);
       return;
     }
 
@@ -299,13 +299,18 @@ const CustomerCountDisplay = ({ handleOverlay, trigger }) => {
   );
 
   const renderDataList = () => {
+
+
     const reversedData = [...clickedCardData].reverse();
+
+
     const listHeaderText =
       isCardClicked === 'visitors'
         ? 'Visitors'
         : isCardClicked === 'shoppers'
           ? 'Shoppers'
           : '';
+
 
     return (
       <Modal visible={isCardClicked !== null} animationType="slide" transparent={false}>
@@ -478,57 +483,10 @@ const CustomerCountDisplay = ({ handleOverlay, trigger }) => {
         {isCardClicked !== null && renderDataList()}
       </LinearGradient>
     </View >
-    // </View >
+
 
   );
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//     <View style={styles.container}>
-//       <TouchableOpacity
-//       // onPress={() => handleCardClick('registeredCustomers')}
-//       >
-//         <View style={[styles.card, styles.registeredCustomersCard]}>
-//           <Text style={styles.cardTitle}>Customers</Text>
-//           <Text style={styles.cardValuer}>{visitorCount + shopperCount}</Text>
-//         </View>
-//       </TouchableOpacity>
-//       <TouchableOpacity onPress={() => handleCardClick('visitors')}>
-//         <View style={[styles.card, styles.visitorsCard]}>
-//           <Text style={styles.cardTitle}>Visitors</Text>
-//           <Text style={styles.cardValue}>{visitorCount}</Text>
-//         </View>
-//       </TouchableOpacity>
-//       <TouchableOpacity onPress={() => handleCardClick('shoppers')}>
-//         <View style={[styles.card, styles.shoppersCard]}>
-//           <Text style={styles.cardTitle}>Shoppers</Text>
-//           <Text style={styles.cardValue}>{shopperCount}</Text>
-//         </View>
-//       </TouchableOpacity>
-//       {renderDateTimePicker()}
-//       {isCardClicked !== null && renderDataList()}
-//     </View>
-//   );
-// };
 
 const styles = StyleSheet.create({
 

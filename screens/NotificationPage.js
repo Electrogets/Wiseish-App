@@ -18,10 +18,9 @@ import {
     widthPercentageToDP as wp,
     heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import { showNotification, requestNotificationPermission, checkNotificationPermission } from './NotificationHandler'; // Adjust the path as necessary
+import { showNotification, requestNotificationPermission, checkNotificationPermission, updateNotification } from './NotificationHandler'; // Adjust the path as necessary
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-
+import crypto from 'crypto-js';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
@@ -47,7 +46,6 @@ const NotificationPage = () => {
         return () => clearInterval(intervalId);
     }, []);
 
-
     const checkAndRequestNotificationPermission = async () => {
         const hasPermission = await checkNotificationPermission();
         if (!hasPermission) {
@@ -58,8 +56,6 @@ const NotificationPage = () => {
         }
     };
 
-
-
     useEffect(() => {
         const subscription = Appearance.addChangeListener(({ colorScheme }) => {
             setIsDarkMode(colorScheme === 'dark');
@@ -68,34 +64,50 @@ const NotificationPage = () => {
         return () => subscription.remove();
     }, []);
 
+    const NOTIFICATION_STORAGE_KEY = 'shownNotifications';
 
-
-    const NOTIFICATION_STORAGE_KEY = 'shownNotificationIds';
+    const generateNotificationHash = (notification) => {
+        return crypto.MD5(`${notification.customer.name}:${notification.customer.description}:${notification.reminder_datetime}`).toString();
+    };
 
     const showUnreadNotificationOnce = async (notifications) => {
         try {
-            const shownNotificationIds = JSON.parse(await AsyncStorage.getItem(NOTIFICATION_STORAGE_KEY)) || [];
+            const shownNotifications = JSON.parse(await AsyncStorage.getItem(NOTIFICATION_STORAGE_KEY)) || [];
             const newUnreadNotifications = notifications.filter(notification => !notification.seen);
 
             if (newUnreadNotifications.length > 0) {
                 const latestNotification = newUnreadNotifications[0];
+                const latestNotificationHash = generateNotificationHash(latestNotification);
 
-                if (!shownNotificationIds.includes(latestNotification.id)) {
+                const existingNotification = shownNotifications.find(
+                    item => item.id === latestNotification.id
+                );
+
+                if (!existingNotification) {
                     showNotification(
                         'New Reminder',
                         `${latestNotification.customer.name}: ${latestNotification.customer.description}`
                     );
 
-                    // Add the notification ID to the list of shown notifications
-                    shownNotificationIds.push(latestNotification.id);
-                    await AsyncStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(shownNotificationIds));
+                    // Add the notification to the list of shown notifications
+                    shownNotifications.push({ id: latestNotification.id, hash: latestNotificationHash });
+                    await AsyncStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(shownNotifications));
+                } else if (existingNotification.hash !== latestNotificationHash) {
+                    updateNotification(
+                        latestNotification.id,
+                        'Reminder Updated',
+                        `${latestNotification.customer.name}: ${latestNotification.customer.description}`
+                    );
+
+                    // Update the hash in the stored notifications
+                    existingNotification.hash = latestNotificationHash;
+                    await AsyncStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(shownNotifications));
                 }
             }
         } catch (error) {
             console.error('Error showing unread notification:', error);
         }
     };
-
 
     const fetchNotifications = async () => {
         try {
@@ -108,38 +120,35 @@ const NotificationPage = () => {
                 },
             );
 
-            const updatedNotifications = response.data.reverse().map(notification => ({
+            const updatedNotifications = response.data.map(notification => ({
                 ...notification,
                 seen: notification.salesperson_notification_seen,
             }));
 
-            setNotifications(updatedNotifications);
-            const unreadCount = updatedNotifications.filter(notification => !notification.seen).length;
+            // Separate unseen and seen notifications
+            const unseenNotifications = updatedNotifications.filter(notification => !notification.seen);
+            const seenNotifications = updatedNotifications.filter(notification => notification.seen);
+
+            // Sort unseen notifications by reminder time in descending order
+            unseenNotifications.sort((a, b) => new Date(b.reminder_datetime) - new Date(a.reminder_datetime));
+
+            // Combine sorted unseen notifications with seen notifications
+            const sortedNotifications = [...unseenNotifications, ...seenNotifications];
+
+            setNotifications(sortedNotifications);
+            const unreadCount = unseenNotifications.length;
             setUnreadNotificationCount(unreadCount);
             setFetchError(null);
 
             // Show a local notification for new unread notifications
-            await showUnreadNotificationOnce(updatedNotifications);
-
-            // Show a local notification for new unread notifications
-            const newUnreadNotifications = updatedNotifications.filter(notification => !notification.seen);
-            if (newUnreadNotifications.length > 0) {
-                const latestNotification = newUnreadNotifications[0];
-                showNotification(
-                    'New Reminder',
-                    `${latestNotification.customer.name}: ${latestNotification.customer.description}`
-                );
-            }
+            await showUnreadNotificationOnce(sortedNotifications);
 
         } catch (error) {
             setFetchError(error.message || 'Error fetching notifications');
             console.error('Error fetching notifications:', error);
-            // If token expired or unauthorized, handle token refresh here
             if (error.response && error.response.status === 401) {
-                // Example logic for token refresh
-                dispatch({ type: 'LOGOUT' }); // Clear token from Redux state
+                dispatch({ type: 'LOGOUT' });
                 Alert.alert('Session Expired', 'Please log in again.');
-                // Navigate to login screen or handle re-authentication
             }
         }
     };
