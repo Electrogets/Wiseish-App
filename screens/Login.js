@@ -44,6 +44,7 @@ const allowedLocations = [
   { latitude: 13.621364050577402, longitude: 79.41892008965483 }, //(TIRUPATI){LG ELECTRONICS INDIA PVT LTD (TIRUPATI) NO. 19-8-153, 4TH FLOOR, HATHIRAMJI COLONY, AIR BYE-PASS ROAD, TIRUPATI 517501 ANDHRA PRADESH INDIA}
   { latitude: 24.6078056, longitude: 73.6958886 },//Shop Name : Liberty Associates Pvt. Ltd.
   { latitude: 24.5858056, longitude: 73.6940278 },//Shop Name : Sound And Vision
+  { latitude: 26.277387, longitude: 73.033391 },//Shop Name : Rudraksh Electronics
 
   // office guys coordinates
   { latitude: 28.684387, longitude: 77.522865 }, //{Tushar}
