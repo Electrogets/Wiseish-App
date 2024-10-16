@@ -77,3 +77,90 @@ To learn more about React Native, take a look at the following resources:
 - [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
 - [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
 - [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+
+
+
+
+
+# Folder Structure 
+
+
+- [screens](D:\Wiseish\screens) - [assets](D:\Wiseish\screens\assets) -> Images and icons
+
+
+-  [screens](D:\Wiseish\screens) - [auth](D:\Wiseish\screens\auth\AuthContext.js) -> [AuthContext.js](D:\Wiseish\screens\auth\AuthContext.js) (token  store and dispatch)
+
+
+- [screens](D:\Wiseish\screens) - [popups](D:\Wiseish\screens\popups) -> [ErrorPopup.js](D:\Wiseish\screens\popups\ErrorPopup.js) (error popup define in this)
+
+
+- [screens](D:\Wiseish\screens) - [services](D:\Wiseish\screens\services) -> [PermissionManager.js](D:\Wiseish\screens\services\PermissionManager.js) (All required android permission handled)
+
+
+- [screens](D:\Wiseish\screens) - [apiclint.js](D:\Wiseish\screens\apiClint.js) (BaseURL define and dispatch from here)
+
+
+- [screens](D:\Wiseish\screens) - [CustomerCountDisplay.js](D:\Wiseish\screens\CustomerCountDisplay.js) (Visitor or shopper count)
+
+
+- [screens](D:\Wiseish\screens) - [GlobalStyles.js](D:\Wiseish\screens\GlobalStyles.js) (some global styles defined here)
+
+
+- [screens](D:\Wiseish\screens) - [Login.js](D:\Wiseish\screens\Login.js) (Login page and authentication and geofencing defined here)
+
+- [screens](D:\Wiseish\screens) - [NotificationHandler.js](D:\Wiseish\screens\NotificationHandler.js) (Notification channel created here and local notification created here)
+
+
+- [screens](D:\Wiseish\screens) - [NotificationPage.js](D:\Wiseish\screens\NotificationPage.js) (Notification handle fetch and token authetication and dispatch)
+
+
+- [screens](D:\Wiseish\screens) - [Register.js](D:\Wiseish\screens\Register.js) (handle the main form of submitting visitor and shopper data)
+
+
+- [screens](D:\Wiseish\screens) - [Splash.js](D:\Wiseish\screens\SplashScreen.js) (Splash screen with animation)
+
+
+- [screens](D:\Wiseish\screens) - [VisitorReminder.js](D:\Wiseish\screens\VisitorReminder.js) (Handle the visitor reminder and feeback update)
+
+
+- [screens](D:\Wiseish\screens) - [SuccessPopup.js](D:\Wiseish\screens\SuccessPopup.js) (success pop display)
+
+
+
+
+# Cli Commands 
+```bash
+# clean cache
+npx react-native clean || npm start --reset-cache
+
+# start project for Android
+- npm start || npx react-native run-android 
+
+# start project for ios
+npm start || npx react-native run-ios
+
+# install Packages
+- npm install [Package-Name] || npm i [Package-Name] 
+
+# uninstall Packages
+- npm uninstall [Package-Name] -> To uninstall package from the project
+
+# to install npm packages
+- npm i || npm install 
+
+# To prepare for a fresh build
+- cd android && ./gradlew clean 
+
+# to back to the main folder
+- cd ..
+```
+
+# generate the publish ABB file of the app
+
+- [clickhere](https://reactnative.dev/docs/signed-apk-android)
+
+# To change the version name and code version
+
+- current  -> versionCode = 5 && versionName = 1.0.5
+
+- [To update](D:\Wiseish\android\app\build.gradle) in defaultconfig{} function

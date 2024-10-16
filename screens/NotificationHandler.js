@@ -72,28 +72,3 @@ export const checkNotificationPermission = async () => {
 
 
 
-// const NOTIFICATION_STORAGE_KEY = 'shownNotificationIds';
-
-// export const showUnreadNotificationOnce = async (notifications) => {
-//     try {
-//         const shownNotificationIds = JSON.parse(await AsyncStorage.getItem(NOTIFICATION_STORAGE_KEY)) || [];
-//         const newUnreadNotifications = notifications.filter(notification => !notification.seen);
-
-//         if (newUnreadNotifications.length > 0) {
-//             const latestNotification = newUnreadNotifications[0];
-
-//             if (!shownNotificationIds.includes(latestNotification.id)) {
-//                 showNotification(
-//                     'New Reminder',
-//                     `${latestNotification.customer.name}: ${latestNotification.customer.description}`
-//                 );
-
-//                 // Add the notification ID to the list of shown notifications
-//                 shownNotificationIds.push(latestNotification.id);
-//                 await AsyncStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(shownNotificationIds));
-//             }
-//         }
-//     } catch (error) {
-//         console.error('Error showing unread notification:', error);
-//     }
-// };
